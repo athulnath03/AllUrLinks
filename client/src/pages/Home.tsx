@@ -19,7 +19,63 @@ import {
 } from "lucide-react";
 
 type Theme = "system" | "light" | "dark";
-type SearchEngine = "google" | "duckduckgo" | "bing";
+type SearchEngine =
+  | "duckduckgo"
+  | "google"
+  | "brave"
+  | "startpage"
+  | "swisscows"
+  | "qwant"
+  | "mojeek";
+
+const SEARCH_ENGINES = [
+  {
+    id: "duckduckgo",
+    name: "DuckDuckGo",
+    domain: "duckduckgo.com",
+    searchUrl: "https://duckduckgo.com/?q=",
+  },
+  {
+    id: "google",
+    name: "Google",
+    domain: "google.com",
+    searchUrl: "https://www.google.com/search?q=",
+  },
+  {
+    id: "brave",
+    name: "Brave Search",
+    domain: "search.brave.com",
+    searchUrl: "https://search.brave.com/search?q=",
+  },
+  {
+    id: "startpage",
+    name: "Startpage",
+    domain: "startpage.com",
+    searchUrl: "https://www.startpage.com/sp/search?query=",
+  },
+  {
+    id: "swisscows",
+    name: "Swisscows",
+    domain: "swisscows.com",
+    searchUrl: "https://swisscows.com/en/web?query=",
+  },
+  {
+    id: "qwant",
+    name: "Qwant",
+    domain: "qwant.com",
+    searchUrl: "https://www.qwant.com/?q=",
+  },
+  {
+    id: "mojeek",
+    name: "Mojeek",
+    domain: "mojeek.com",
+    searchUrl: "https://www.mojeek.com/search?q=",
+  },
+] as const;
+
+function engineIcon(domain: string) {
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+}
 
 const demoFavourites: Favourite[] = [
   {
@@ -110,8 +166,13 @@ export default function Home() {
     () => (localStorage.getItem("fh-theme") as Theme) || "system"
   );
   const [engine, setEngine] = useState<SearchEngine>(
-    () => (localStorage.getItem("fh-engine") as SearchEngine) || "google"
+    () => (localStorage.getItem("fh-engine") as SearchEngine) || "duckduckgo"
   );
+  const [searchMenuOpen, setSearchMenuOpen] = useState(false);
+
+  const selectedEngine =
+    SEARCH_ENGINES.find(item => item.id === engine) ?? SEARCH_ENGINES[0];
+
   const [newTab, setNewTab] = useState(
     () => localStorage.getItem("fh-new-tab") === "true"
   );
@@ -305,17 +366,17 @@ export default function Home() {
       setFavourites(items => [...items, optimistic]);
       setDialog(null);
       const { data, error: insertError } = await supabase
-      .from('favourites')
-      .insert({
-        user_id: session.user.id,
-        name,
-        url,
-        icon,
-        category: draft.category || null,
-        position: optimistic.position,
-      })
-      .select()
-      .single();
+        .from("favourites")
+        .insert({
+          user_id: session.user.id,
+          name,
+          url,
+          icon,
+          category: draft.category || null,
+          position: optimistic.position,
+        })
+        .select()
+        .single();
       if (insertError) {
         setFavourites(items => items.filter(item => item.id !== optimistic.id));
         setError("We could not add that favourite. Please try again.");
@@ -372,14 +433,14 @@ export default function Home() {
   };
   const submitSearch = (event: FormEvent) => {
     event.preventDefault();
-    const providers: Record<SearchEngine, string> = {
-      google: "https://www.google.com/search?q=",
-      duckduckgo: "https://duckduckgo.com/?q=",
-      bing: "https://www.bing.com/search?q=",
-    };
-    if (query.trim())
-      window.location.href =
-        providers[engine] + encodeURIComponent(query.trim());
+
+    if (!query.trim()) return;
+
+    const selected =
+      SEARCH_ENGINES.find(item => item.id === engine) ?? SEARCH_ENGINES[0];
+
+    window.location.href =
+      selected.searchUrl + encodeURIComponent(query.trim());
   };
 
   const isSignedOut = isSupabaseConfigured && !session;
@@ -387,11 +448,7 @@ export default function Home() {
     <div className="app-shell">
       <header className="topbar">
         <div className="brand">
-          <div className="brand-mark">
-            <Sparkles size={15} />
-          </div>
-          <span>Favourites</span>
-          <span className="brand-dot">Home</span>
+          <span>LynkHive</span>
         </div>
         <div className="top-actions">
           {isSupabaseConfigured ? (
@@ -423,62 +480,27 @@ export default function Home() {
             <span className="preview-pill">Preview mode</span>
           )}
           <button
-            className="icon-button"
-            onClick={() => setSettingsOpen(open => !open)}
-            aria-label="Open settings"
-          >
-            <Settings2 size={18} />
-          </button>
-        </div>
-        {settingsOpen && (
-          <div className="settings-popover">
-            <div className="settings-heading">
-              Quick settings{" "}
-              <button onClick={() => setSettingsOpen(false)}>
-                <X size={15} />
+                type="button"
+                className="theme-toggle"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                aria-label={
+                  theme === "dark"
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+                title={
+                  theme === "dark"
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+              >
+                {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
               </button>
-            </div>
-            <label>
-              Theme
-              <select
-                value={theme}
-                onChange={e => setTheme(e.target.value as Theme)}
-              >
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </label>
-            <label>
-              Search engine
-              <select
-                value={engine}
-                onChange={e => setEngine(e.target.value as SearchEngine)}
-              >
-                <option value="google">Google</option>
-                <option value="duckduckgo">DuckDuckGo</option>
-                <option value="bing">Bing</option>
-              </select>
-            </label>
-            <label className="switch-row">
-              Open links in a new tab{" "}
-              <input
-                type="checkbox"
-                checked={newTab}
-                onChange={e => setNewTab(e.target.checked)}
-              />
-            </label>
-          </div>
-        )}
+        </div>
       </header>
       <main className="main-content">
         <section className="hero">
           <p className="eyebrow">YOUR PERSONAL START PAGE</p>
-          <h1>
-            Everything you need,
-            <br />
-            <em>one click away.</em>
-          </h1>
           <p className="hero-copy">
             A quiet place for the sites you return to every day.
           </p>
@@ -518,13 +540,10 @@ export default function Home() {
           <>
             <section className="section-head">
               <div>
-                <p className="section-kicker">Your collection</p>
-                <h2>
-                  Favourites <span>{favourites.length}</span>
-                </h2>
+                <p className="section-kicker">Your collection (<span>{favourites.length}</span>)</p>
               </div>
               <button className="button primary" onClick={openAdd}>
-                <Plus size={17} /> Add favourite
+                <Plus size={17} /> New
               </button>
             </section>
             <div className="filters">
@@ -624,7 +643,50 @@ export default function Home() {
           </>
         )}
         <form className="search-wrap" onSubmit={submitSearch}>
-          <Search size={19} />
+          <div className="search-engine-picker">
+            <button
+              type="button"
+              className="search-engine-trigger"
+              onClick={() => setSearchMenuOpen(open => !open)}
+              aria-label={`Search engine: ${selectedEngine.name}`}
+              aria-expanded={searchMenuOpen}
+            >
+              <img
+                src={engineIcon(selectedEngine.domain)}
+                alt=""
+                className="search-engine-icon"
+              />
+              <span className="search-engine-name">{selectedEngine.name}</span>
+            </button>
+
+            {searchMenuOpen && (
+              <div className="search-engine-menu">
+                {SEARCH_ENGINES.map(searchEngine => (
+                  <button
+                    type="button"
+                    key={searchEngine.id}
+                    className={
+                      searchEngine.id === engine
+                        ? "search-engine-option active"
+                        : "search-engine-option"
+                    }
+                    onClick={() => {
+                      setEngine(searchEngine.id);
+                      setSearchMenuOpen(false);
+                    }}
+                  >
+                    <img
+                      src={engineIcon(searchEngine.domain)}
+                      alt=""
+                      className="search-engine-icon"
+                    />
+                    <span>{searchEngine.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <input
             ref={searchRef}
             value={query}
@@ -632,9 +694,12 @@ export default function Home() {
             placeholder="Search the web..."
             aria-label="Search the web"
           />
+
           <kbd>/</kbd>
+
           <button type="submit">Search</button>
         </form>
+
         <p className="privacy-note">
           Your favourites are stored securely in your Supabase account.
         </p>
