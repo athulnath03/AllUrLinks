@@ -1,9 +1,8 @@
 /* =========================================================
-   1. Imports & Tailwind
+   1. Tailwind
    ========================================================= */
 
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -50,6 +49,7 @@ html {
 body {
   min-width: 320px;
   margin: 0;
+
   background:
     radial-gradient(
       circle at 50% -10%,
@@ -57,12 +57,12 @@ body {
       transparent 38%
     ),
     var(--bg);
+
   color: var(--ink);
 }
 
 button,
-input,
-select {
+input {
   font: inherit;
 }
 
@@ -85,11 +85,12 @@ button {
 }
 
 /* =========================================================
-   5. Top Bar / Header
+   5. Top Bar
    ========================================================= */
 
 .topbar {
   position: relative;
+
   max-width: 1180px;
   margin: 0 auto;
   padding: 24px 34px;
@@ -136,7 +137,12 @@ button {
 }
 
 .account:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-color: color-mix(
+    in srgb,
+    var(--accent) 35%,
+    var(--line)
+  );
+
   background: var(--surface);
   box-shadow: 0 6px 18px rgba(27, 38, 31, 0.07);
 }
@@ -167,13 +173,16 @@ button {
 
 .username {
   display: block;
+
   max-width: 120px;
 
   overflow: hidden;
+
   text-overflow: ellipsis;
   white-space: nowrap;
 
   color: var(--ink);
+
   font-size: 12px;
   font-weight: 650;
   letter-spacing: -0.01em;
@@ -182,6 +191,7 @@ button {
 .account .icon-button {
   width: 27px;
   height: 27px;
+
   margin-left: 2px;
 
   border: 0;
@@ -224,6 +234,7 @@ button {
 .button.primary {
   color: var(--ink);
   background: var(--accent-soft);
+
   box-shadow: 0 5px 15px rgba(49, 92, 76, 0.18);
 }
 
@@ -235,6 +246,7 @@ button {
 .button.secondary {
   color: var(--ink);
   background: var(--surface);
+
   border: 1px solid var(--line);
 }
 
@@ -308,6 +320,7 @@ button {
 
 .hero {
   padding: 34px 0 54px;
+
   text-align: center;
 }
 
@@ -319,6 +332,7 @@ button {
 
   font-size: 10px;
   font-weight: 800;
+
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -343,46 +357,80 @@ button {
   margin-bottom: 22px;
 }
 
-.section-head h2 {
-  margin: 0;
-  font-family: Georgia, serif;
-  font-weight: 500;
-  font-size: 28px;
-  letter-spacing: -0.03em;
-}
-
-.section-head h2 span {
-  vertical-align: top;
-  margin-left: 5px;
-  color: var(--muted);
-  font-family: Inter, sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-}
-
 /* =========================================================
    11. Filters
    ========================================================= */
 
 .filters {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  width: 100%;
+  min-width: 0;
 
   margin-bottom: 18px;
 }
 
+.category-filter-wrapper {
+  min-width: 0;
+
+  padding: 4px;
+
+  border: 1px solid var(--line);
+  border-radius: 12px;
+
+  background: color-mix(
+    in srgb,
+    var(--surface) 70%,
+    transparent
+  );
+}
+
+.category-filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  min-width: 0;
+
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.category-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.category-filters > button {
+  flex: 0 0 auto;
+}
+
 .filter {
-  padding: 7px 12px;
+  flex: 0 0 auto;
+
+  padding: 6px 11px;
 
   border: 1px solid transparent;
-  border-radius: 99px;
+  border-radius: 8px;
 
   background: transparent;
   color: var(--muted);
 
   font-size: 12px;
   font-weight: 650;
+
+  white-space: nowrap;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .filter:hover,
@@ -392,42 +440,131 @@ button {
 }
 
 /* =========================================================
-   12. Category Pills
+   12. Sort Menu
    ========================================================= */
 
-.category-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-
-  margin-top: 8px;
+.sort-menu {
+  position: relative;
+  flex: 0 0 auto;
 }
 
-.category-pill {
-  padding: 7px 12px;
+.sort-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  height: 36px;
+  padding: 0 12px;
 
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 10px;
+
+  background: var(--surface);
+  color: var(--ink);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.sort-trigger:hover {
+  border-color: var(--accent);
+}
+
+.sort-trigger:active {
+  transform: scale(0.97);
+}
+
+.sort-dropdown {
+  position: absolute;
+
+  top: 0;
+  right: calc(100% + 8px);
+
+  z-index: 30;
+
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  width: max-content;
+  max-width: calc(100vw - 32px);
+
+  padding: 4px;
+
+  border: 1px solid var(--line);
+  border-radius: 10px;
+
+  background: var(--surface);
+
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+
+  white-space: nowrap;
+  overflow: hidden;
+
+  transform-origin: right center;
+
+  opacity: 0;
+
+  transform: translateX(10px) scaleX(0.01);
+
+  pointer-events: none;
+
+  transition:
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 160ms ease;
+}
+
+.sort-menu.open .sort-dropdown {
+  opacity: 1;
+
+  transform: translateX(0) scaleX(1);
+
+  pointer-events: auto;
+}
+
+.sort-dropdown button {
+  flex: 0 0 auto;
+
+  width: auto;
+  min-width: 34px;
+  height: 28px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 0 9px;
+
+  border: 0;
+  border-radius: 7px;
 
   background: transparent;
   color: var(--ink);
 
-  font-size: 13px;
+  font-size: 11px;
 
-  cursor: pointer;
+  white-space: nowrap;
 
-  transition: 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
-.category-pill:hover {
-  border-color: var(--accent);
-}
-
-.category-pill.active {
-  border-color: var(--accent);
-
-  background: var(--accent-soft);
+.sort-dropdown button:hover,
+.sort-dropdown button.active {
   color: var(--accent);
+  background: var(--accent-soft);
 }
 
 /* =========================================================
@@ -436,160 +573,474 @@ button {
 
 .favourite-grid {
   display: grid;
+
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
+
+  gap: 12px;
 
   margin-bottom: 100px;
 }
 
 /* =========================================================
-   14. Favourite Card
+   14. Compact Favourite Card
    ========================================================= */
 
 .favourite-card {
-  padding: 14px;
+  min-width: 0;
+
+  padding: 11px 12px;
 
   border: 1px solid var(--line);
-  border-radius: 17px;
+  border-radius: 14px;
 
-  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--surface) 90%,
+    transparent
+  );
+
   box-shadow: 0 4px 15px rgba(25, 35, 29, 0.025);
 
-  transition: 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .favourite-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
+
+  border-color: color-mix(
+    in srgb,
+    var(--accent) 35%,
+    var(--line)
+  );
 
   box-shadow: var(--shadow);
-
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
 }
 
-.card-top {
+/* Top row:
+   [icon] GitHub                         •••
+*/
+
+.favourite-card-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+
+  min-width: 0;
+
+  gap: 8px;
 }
 
-.drag-handle {
-  color: var(--muted);
-  opacity: 0.45;
-}
+.favourite-main {
+  min-width: 0;
+  flex: 1;
 
-.card-actions {
   display: flex;
-  gap: 2px;
+  align-items: center;
 
-  opacity: 0;
+  gap: 9px;
 
-  transition: 0.18s ease;
+  color: inherit;
+  text-decoration: none;
 }
 
-.favourite-card:hover .card-actions {
-  opacity: 1;
+.favourite-main h3 {
+  min-width: 0;
+
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--ink);
+
+  font-size: 13px;
+  font-weight: 700;
+
+  letter-spacing: -0.02em;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.card-actions button {
-  width: 25px;
-  height: 25px;
+/* =========================================================
+   15. Compact Favicon
+   ========================================================= */
+
+.favicon-wrap {
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
 
   display: grid;
   place-items: center;
+
+  border-radius: 9px;
+
+  background: var(--accent-soft);
+}
+
+.favicon-wrap img {
+  width: 19px;
+  height: 19px;
+
+  object-fit: contain;
+
+  border-radius: 5px;
+}
+
+.favicon-fallback {
+  color: var(--accent);
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   16. More Button
+   ========================================================= */
+
+.more-button {
+  width: 27px;
+  height: 27px;
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
 
   border: 0;
   border-radius: 7px;
 
   background: transparent;
   color: var(--muted);
+
+  opacity: 0.65;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
 }
 
-.card-actions button:hover {
-  background: var(--accent-soft);
+.favourite-card:hover .more-button {
+  opacity: 1;
+}
+
+.more-button:hover {
   color: var(--accent);
+  background: var(--accent-soft);
 }
 
 /* =========================================================
-   15. Favourite Link
+   17. Favourite Bottom Row
    ========================================================= */
 
-.favourite-link {
-  position: relative;
+.favourite-bottom {
+  min-width: 0;
 
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+
   gap: 8px;
 
-  padding-top: 21px;
+  margin-top: 8px;
+  padding-left: 40px;
 
-  color: inherit;
+  color: var(--muted);
   text-decoration: none;
+
+  font-size: 10px;
+  font-weight: 600;
 }
 
-.favourite-link h3 {
-  margin: 0 0 5px;
+.favourite-bottom span {
+  min-width: 0;
 
-  font-size: 15px;
-  letter-spacing: -0.02em;
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.favourite-link p {
-  margin: 0;
+.favourite-bottom .arrow {
+  flex: 0 0 auto;
 
   color: var(--muted);
 
-  font-size: 11px;
+  opacity: 0.7;
+
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
 }
 
-.arrow {
-  position: absolute;
-  right: 0;
-  bottom: 0;
+.favourite-card:hover .favourite-bottom .arrow {
+  color: var(--accent);
 
-  color: var(--muted);
-  opacity: 0.5;
+  transform: translate(1px, -1px);
 }
 
 /* =========================================================
-   16. Favicons
+   18. Skeleton Grid
    ========================================================= */
 
-.favicon-wrap {
-  width: 45px;
-  height: 45px;
+.skeleton-grid {
+  display: grid;
+
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+.skeleton-card {
+  height: 72px;
+
+  padding: 11px 12px;
+
+  border: 1px solid var(--line);
+  border-radius: 14px;
+
+  background: linear-gradient(
+    90deg,
+    var(--surface),
+    color-mix(
+      in srgb,
+      var(--line) 45%,
+      var(--surface)
+    ),
+    var(--surface)
+  );
+
+  background-size: 200% 100%;
+
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-card-top {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+}
+
+.skeleton-icon {
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+
+  border-radius: 9px;
+
+  background: color-mix(
+    in srgb,
+    var(--line) 65%,
+    var(--surface)
+  );
+}
+
+.skeleton-name {
+  width: 65px;
+  height: 10px;
+
+  border-radius: 99px;
+
+  background: color-mix(
+    in srgb,
+    var(--line) 70%,
+    var(--surface)
+  );
+}
+
+.skeleton-menu {
+  width: 27px;
+  height: 27px;
+
+  margin-left: auto;
+
+  border-radius: 7px;
+
+  background: color-mix(
+    in srgb,
+    var(--line) 55%,
+    var(--surface)
+  );
+}
+
+.skeleton-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 8px;
+  padding-left: 40px;
+}
+
+.skeleton-category {
+  width: 58px;
+  height: 8px;
+
+  border-radius: 99px;
+
+  background: color-mix(
+    in srgb,
+    var(--line) 65%,
+    var(--surface)
+  );
+}
+
+.skeleton-arrow {
+  width: 13px;
+  height: 13px;
+
+  border-radius: 4px;
+
+  background: color-mix(
+    in srgb,
+    var(--line) 65%,
+    var(--surface)
+  );
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* =========================================================
+   19. Favourite Action Modal
+   ========================================================= */
+
+.action-modal-backdrop {
+  position: fixed;
+  inset: 0;
+
+  z-index: 25;
 
   display: grid;
   place-items: center;
 
-  margin-bottom: 13px;
+  padding: 18px;
 
-  border-radius: 13px;
+  background: rgba(19, 25, 21, 0.18);
 
-  background: var(--accent-soft);
+  backdrop-filter: blur(3px);
 }
 
-.favicon-wrap img {
-  width: 27px;
-  height: 27px;
+.action-modal {
+  width: min(100%, 280px);
 
-  object-fit: contain;
+  padding: 14px;
 
-  border-radius: 7px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+
+  background: var(--surface);
+
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.16);
+
+  animation: actionModalIn 150ms ease;
 }
 
-.favicon-fallback {
-  color: var(--accent);
+@keyframes actionModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.action-modal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  margin-bottom: 10px;
+}
+
+.action-modal-heading h3 {
+  max-width: 190px;
+
+  margin: 2px 0 0;
+
+  overflow: hidden;
+
+  color: var(--ink);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action-modal-kicker {
+  color: var(--muted);
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.action-modal-options {
+  display: grid;
+
+  gap: 5px;
+}
+
+.action-modal-options button {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px 11px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+  color: var(--ink);
 
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 650;
+
+  text-align: left;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.action-modal-options button:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.action-modal-options .danger-option:hover {
+  color: #b42318;
+  background: #fae9e7;
 }
 
 /* =========================================================
-   17. Search
+   20. Bottom Search
    ========================================================= */
 
-/* Bottom fade behind the fixed search bar */
 .search-fade {
   position: fixed;
+
   left: 0;
   right: 0;
   bottom: 0;
@@ -603,25 +1054,40 @@ button {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    color-mix(in srgb, var(--bg) 30%, transparent) 20%,
-    color-mix(in srgb, var(--bg) 65%, transparent) 45%,
-    color-mix(in srgb, var(--bg) 90%, transparent) 65%,
+    color-mix(
+      in srgb,
+      var(--bg) 30%,
+      transparent
+    ) 20%,
+    color-mix(
+      in srgb,
+      var(--bg) 65%,
+      transparent
+    ) 45%,
+    color-mix(
+      in srgb,
+      var(--bg) 90%,
+      transparent
+    ) 65%,
     var(--bg) 100%
   );
 }
 
 .search-wrap {
   position: fixed;
+
   left: 0;
   right: 0;
   bottom: 32px;
 
   z-index: 9;
-  margin: 0 auto;
+
   max-width: 620px;
+  margin: 0 auto;
 
   display: flex;
   align-items: center;
+
   gap: 12px;
 
   padding: 6px 7px 6px 14px;
@@ -630,6 +1096,7 @@ button {
   border-radius: 14px;
 
   background: var(--surface);
+
   box-shadow: 0 10px 30px rgba(26, 35, 29, 0.045);
 }
 
@@ -675,7 +1142,7 @@ button {
 }
 
 /* =========================================================
-   18. Search Engine Picker
+   21. Search Engine Picker
    ========================================================= */
 
 .search-engine-picker {
@@ -692,7 +1159,10 @@ button {
 
   display: inline-flex;
   align-items: center;
+
   gap: 7px;
+
+  padding: 7px;
 
   border: 0;
   border-radius: 8px;
@@ -713,6 +1183,7 @@ button {
 .search-engine-icon {
   width: 19px;
   height: 19px;
+
   flex: 0 0 auto;
 
   object-fit: contain;
@@ -728,18 +1199,21 @@ button {
 
 .search-engine-menu {
   position: absolute;
+
   left: 0;
   bottom: calc(100% + 16px);
 
   z-index: 30;
 
   width: 140px;
+
   padding: 6px;
 
   border: 1px solid var(--line);
   border-radius: 13px;
 
   background: var(--surface);
+
   box-shadow: 0 16px 40px rgba(24, 34, 28, 0.16);
 }
 
@@ -747,6 +1221,7 @@ button {
   content: "";
 
   position: absolute;
+
   left: 25px;
   bottom: -6px;
 
@@ -766,6 +1241,7 @@ button {
 
   display: flex;
   align-items: center;
+
   gap: 10px;
 
   padding: 9px 10px;
@@ -789,7 +1265,7 @@ button {
 }
 
 /* =========================================================
-   19. Alerts
+   22. Alerts
    ========================================================= */
 
 .alert {
@@ -798,9 +1274,11 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 9px;
 
   margin: 0 auto 20px;
+
   padding: 11px 13px;
 
   border-radius: 10px;
@@ -830,7 +1308,7 @@ button {
 }
 
 /* =========================================================
-   20. Authentication / Empty State
+   23. Authentication / Empty State
    ========================================================= */
 
 .auth-card,
@@ -840,7 +1318,11 @@ button {
   border: 1px dashed var(--line);
   border-radius: 18px;
 
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--surface) 70%,
+    transparent
+  );
 
   text-align: center;
 }
@@ -866,6 +1348,7 @@ button {
   margin: 0 0 8px;
 
   font-family: Georgia, serif;
+
   font-size: 24px;
   font-weight: 500;
 }
@@ -882,41 +1365,45 @@ button {
 }
 
 /* =========================================================
-   21. Loading Skeleton
+   24. Category Pills
    ========================================================= */
 
-.skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 14px;
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  margin-top: 8px;
 }
 
-.skeleton {
-  height: 134px;
+.category-pill {
+  padding: 7px 12px;
 
-  border-radius: 17px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
 
-  background: linear-gradient(
-    90deg,
-    var(--surface),
-    color-mix(in srgb, var(--line) 45%, var(--surface)),
-    var(--surface)
-  );
+  background: transparent;
+  color: var(--ink);
 
-  background-size: 200% 100%;
+  font-size: 13px;
 
-  animation: shimmer 1.5s infinite;
+  transition: 0.15s ease;
 }
 
-@keyframes shimmer {
-  to {
-    background-position: -200% 0;
-  }
+.category-pill:hover {
+  border-color: var(--accent);
+}
+
+.category-pill.active {
+  border-color: var(--accent);
+
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* =========================================================
-   22. Modal
+   25. Modal
    ========================================================= */
 
 .modal-backdrop {
@@ -943,6 +1430,7 @@ button {
   border-radius: 19px;
 
   background: var(--surface);
+
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
 }
 
@@ -957,17 +1445,20 @@ button {
   margin: 0;
 
   font-family: Georgia, serif;
+
   font-size: 27px;
   font-weight: 500;
 }
 
 .modal form {
   display: grid;
+
   gap: 14px;
 }
 
 .modal label {
   display: grid;
+
   gap: 6px;
 
   color: var(--muted);
@@ -1006,13 +1497,14 @@ button {
 .modal-actions {
   display: flex;
   justify-content: flex-end;
+
   gap: 8px;
 
   margin-top: 8px;
 }
 
 /* =========================================================
-   23. Utility
+   26. Utility
    ========================================================= */
 
 .hidden {
@@ -1020,13 +1512,16 @@ button {
 }
 
 /* =========================================================
-   24. Responsive — Tablet
+   27. Responsive — Tablet
    ========================================================= */
 
 @media (max-width: 800px) {
   .favourite-grid,
   .skeleton-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(
+      2,
+      minmax(0, 1fr)
+    );
   }
 
   .main-content {
@@ -1039,7 +1534,7 @@ button {
 }
 
 /* =========================================================
-   25. Responsive — Mobile
+   28. Responsive — Mobile
    ========================================================= */
 
 @media (max-width: 520px) {
@@ -1061,22 +1556,25 @@ button {
 
   .section-head .button {
     padding: 9px 10px;
+
     font-size: 12px;
   }
+
+  /* Bottom Search */
 
   .search-wrap {
     left: 20px;
     right: 20px;
     bottom: 32px;
-  }
 
-  .search-wrap {
     margin-top: 72px;
   }
 
   .search-wrap kbd {
     display: none;
   }
+
+  /* Search Engine */
 
   .search-engine-trigger {
     min-width: 36px;
@@ -1089,95 +1587,139 @@ button {
 
   .search-engine-menu {
     left: -4px;
+
     width: 178px;
   }
 
   .username {
     display: none;
   }
-}
 
-.filters {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
+  /* Filters */
 
-.category-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+  .filters {
+    gap: 8px;
+  }
 
-.sort-menu {
-  position: relative;
-  flex-shrink: 0;
-}
+  .category-filters {
+    gap: 6px;
+  }
 
-.sort-trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
+  /* Sort */
 
-.sort-trigger:hover {
-  border-color: var(--accent);
-}
+  .sort-trigger {
+    height: 42px;
+    padding: 0 10px;
+  }
 
-.sort-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 30;
-  min-width: 190px;
-  padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-}
+  .sort-trigger span {
+    display: none;
+  }
 
-.sort-dropdown button {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 10px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: 12px;
-  text-align: left;
-  cursor: pointer;
-}
+  .sort-dropdown {
+    top: calc(100% + 8px);
+    right: 0;
 
-.sort-dropdown button:hover,
-.sort-dropdown button.active {
-  background: var(--soft);
-}
+    display: block;
 
-.filters {
-  align-items: flex-start;
-}
+    min-width: 145px;
+    max-width: none;
 
-.sort-trigger {
-  height: 34px;
-  padding: 0 10px;
-}
+    padding: 6px;
 
-.sort-trigger span {
-  display: none;
-}  
+    border-radius: 12px;
+
+    transform-origin: top right;
+
+    transform: translateY(-5px) scale(0.96);
+  }
+
+  .sort-menu.open .sort-dropdown {
+    transform: translateY(0) scale(1);
+  }
+
+  .sort-dropdown button {
+    width: 100%;
+    height: auto;
+
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    gap: 9px;
+
+    padding: 9px 10px;
+
+    border-radius: 8px;
+
+    font-size: 12px;
+
+    text-align: left;
+  }
+
+  /* Compact cards */
+
+  .favourite-grid,
+  .skeleton-grid {
+    gap: 9px;
+  }
+
+  .favourite-card {
+    padding: 10px;
+    border-radius: 13px;
+  }
+
+  .favourite-main {
+    gap: 7px;
+  }
+
+  .favicon-wrap {
+    width: 29px;
+    height: 29px;
+  }
+
+  .favicon-wrap img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .favourite-main h3 {
+    font-size: 12px;
+  }
+
+  .favourite-bottom {
+    margin-top: 7px;
+    padding-left: 36px;
+
+    font-size: 9px;
+  }
+
+  .more-button {
+    width: 25px;
+    height: 25px;
+  }
+
+  .skeleton-card {
+    height: 68px;
+
+    padding: 10px;
+    border-radius: 13px;
+  }
+
+  .skeleton-icon {
+    width: 29px;
+    height: 29px;
+  }
+
+  .skeleton-card-bottom {
+    padding-left: 36px;
+  }
+
+  /* Action modal */
+
+  .action-modal {
+    width: min(100%, 270px);
+  }
+}
