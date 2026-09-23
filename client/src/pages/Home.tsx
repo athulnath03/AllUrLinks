@@ -152,12 +152,12 @@ export default function Home() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured);
   const [error, setError] = useState("");
+  const [modalError, setModalError] = useState("");
   const [notice, setNotice] = useState("");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [dialog, setDialog] = useState<"add" | "edit" | null>(null);
   const [editing, setEditing] = useState<Favourite | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [draft, setDraft] = useState<FavouriteDraft>({
     name: "",
     url: "",
@@ -309,11 +309,13 @@ export default function Home() {
     setNotice("Signed out");
   };
   const openAdd = () => {
+    setModalError("");
     setEditing(null);
     setDraft({ name: "", url: "", category: "", icon: "" });
     setDialog("add");
   };
   const openEdit = (item: Favourite) => {
+    setModalError("");
     setEditing(item);
     setDraft({
       name: item.name,
@@ -332,9 +334,11 @@ export default function Home() {
     try {
       new URL(url);
     } catch {
-      return setError("Enter a valid website URL, such as https://github.com.");
+      return setModalError(
+        "Enter a valid website URL, such as https://github.com."
+      );
     }
-    if (!name) return setError("Give this favourite a name.");
+    if (!name) return setModalError("Give this favourite a name.");
     const icon = draft.icon?.trim() || domainIcon(url);
     if (!supabase) {
       const local: Favourite = {
@@ -583,7 +587,7 @@ export default function Home() {
           <>
             <section className="section-head">
               <div>
-                <p className="section-kicker">
+                <p className="  ">
                   Your collection (<span>{favourites.length}</span>)
                 </p>
               </div>
@@ -604,7 +608,7 @@ export default function Home() {
             </div>
             {loading ? (
               <div className="skeleton-grid">
-                {[1, 2, 3, 4].map(item => (
+                {[1, 2, 3, 4, 5].map(item => (
                   <div className="skeleton" key={item} />
                 ))}
               </div>
@@ -762,6 +766,14 @@ export default function Home() {
                 <X size={18} />
               </button>
             </div>
+            {modalError && (
+              <div className="alert error">
+                <span>{modalError}</span>
+                <button type="button" onClick={() => setModalError("")}>
+                  <X size={15} />
+                </button>
+              </div>
+            )}
             <form onSubmit={saveFavourite}>
               <label>
                 Name
