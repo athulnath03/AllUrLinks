@@ -25,7 +25,6 @@ type SearchEngine =
   | "brave"
   | "startpage"
   | "swisscows"
-  | "qwant"
   | "mojeek";
 
 const SEARCH_ENGINES = [
@@ -58,12 +57,6 @@ const SEARCH_ENGINES = [
     name: "Swisscows",
     domain: "swisscows.com",
     searchUrl: "https://swisscows.com/en/web?query=",
-  },
-  {
-    id: "qwant",
-    name: "Qwant",
-    domain: "qwant.com",
-    searchUrl: "https://www.qwant.com/?q=",
   },
   {
     id: "mojeek",
@@ -117,7 +110,7 @@ const demoFavourites: Favourite[] = [
     name: "Figma",
     url: "https://figma.com",
     icon: null,
-    category: "Work",
+    category: "Tools",
     position: 3,
     created_at: "",
     updated_at: "",
@@ -163,7 +156,7 @@ export default function Home() {
     icon: "",
   });
   const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem("fh-theme") as Theme) || "system"
+    () => (localStorage.getItem("fh-theme") as Theme) || "dark"
   );
   const [engine, setEngine] = useState<SearchEngine>(
     () => (localStorage.getItem("fh-engine") as SearchEngine) || "duckduckgo"
@@ -205,6 +198,7 @@ export default function Home() {
     root.classList.toggle("dark", resolved === "dark");
     localStorage.setItem("fh-theme", theme);
   }, [theme]);
+
   useEffect(() => {
     localStorage.setItem("fh-engine", engine);
   }, [engine]);
@@ -611,9 +605,11 @@ export default function Home() {
                           {initials(item.name)}
                         </span>
                       </div>
-                      <h3>{item.name}</h3>
-                      <p>{item.category || "Uncategorized"}</p>
-                      <ArrowUpRight className="arrow" size={17} />
+                      <div>
+                        <h3>{item.name}</h3>
+                        <p>{item.category || "Uncategorized"}</p>
+                        <ArrowUpRight className="arrow" size={17} />
+                      </div>
                     </a>
                   </article>
                 ))}
@@ -691,7 +687,7 @@ export default function Home() {
             ref={searchRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search the web..."
+            placeholder="type in your query..."
             aria-label="Search the web"
           />
 
@@ -700,9 +696,6 @@ export default function Home() {
           <button type="submit">Search</button>
         </form>
 
-        <p className="privacy-note">
-          Your favourites are stored securely in your Supabase account.
-        </p>
       </main>
       {dialog && (
         <div className="modal-backdrop" onMouseDown={() => setDialog(null)}>

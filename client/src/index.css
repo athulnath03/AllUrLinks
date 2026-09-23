@@ -138,8 +138,8 @@ button {
   transform: scale(0.97);
 }
 .button.primary {
-  color: white;
-  background: var(--accent);
+  color: var(--ink);
+  background: var(--accent-soft);
   box-shadow: 0 5px 15px rgba(49, 92, 76, 0.18);
 }
 .button.primary:hover {
@@ -289,7 +289,7 @@ button {
   gap: 14px;
 }
 .favourite-card {
-  min-height: 178px;
+  /* min-height: 178px; */
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 17px;
@@ -336,7 +336,8 @@ button {
 }
 .favourite-link {
   position: relative;
-  display: block;
+  display: flex;
+  gap: 8px;
   color: inherit;
   text-decoration: none;
   padding-top: 21px;
@@ -382,12 +383,16 @@ button {
   opacity: 0.5;
 }
 .search-wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 32px;
   max-width: 620px;
   margin: 100px auto 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 6px 7px 6px 17px;
+  padding: 6px 7px 6px 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--surface);
@@ -416,12 +421,12 @@ button {
   color: var(--muted);
   font-size: 10px;
 }
-.search-wrap button[type=submit] {
+.search-wrap button[type="submit"] {
   padding: 9px 13px;
   border: 0;
   border-radius: 9px;
-  color: white;
-  background: var(--accent);
+  color: var(--ink);
+  background: var(--accent-soft);
   font-size: 12px;
   font-weight: 750;
 }
@@ -631,9 +636,9 @@ button {
     padding: 9px 10px;
     font-size: 12px;
   }
-  .favourite-card {
+  /* .favourite-card {
     min-height: 155px;
-  }
+  } */
   .search-wrap {
     margin-top: 72px;
   }
@@ -669,14 +674,15 @@ button {
 .search-engine-picker {
   position: relative;
   flex: 0 0 auto;
+  display: grid;
+  place-items: center;
 }
 
 .search-engine-trigger {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-width: 145px;
-  padding: 7px 8px;
+  min-width: 100px;
   border: 0;
   border-radius: 8px;
   color: var(--ink);
@@ -706,9 +712,9 @@ button {
 .search-engine-menu {
   position: absolute;
   left: 0;
-  bottom: calc(100% + 12px);
+  bottom: calc(100% + 16px);
   z-index: 30;
-  width: 150px;
+  width: 140px;
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: 13px;
@@ -761,5 +767,12 @@ button {
   .search-engine-menu {
     left: -4px;
     width: 178px;
+  }
+
+  .search-wrap {
+    position: fixed;
+    left: 20px;
+    right: 20PX;
+    bottom: 32px;
   }
 }

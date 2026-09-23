@@ -12,4 +12,4 @@ export type Favourite = {
 
 export type FavouriteDraft = Pick<Favourite, 'name' | 'url' | 'category' | 'icon'>
 
-export const CATEGORY_OPTIONS = ['Development', 'Social', 'Work', 'Entertainment', 'Finance', 'Other'] as const
+export const CATEGORY_OPTIONS = ['Development', 'Social', 'Work', 'Entertainment', 'AI', 'Tools'] as const
