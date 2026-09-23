@@ -4,23 +4,21 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { CATEGORY_OPTIONS, Favourite, FavouriteDraft } from "@/types/favourite";
 import {
-  ArrowUpRight,
+  ArrowDownAZ,
+  ArrowUpZA,
   Check,
   Clock3,
   History,
   LogIn,
   LogOut,
   Moon,
-  MoreHorizontal,
   Pencil,
   Plus,
   Sparkles,
   Sun,
-  Trash2,
   TrendingUp,
+  Trash2,
   X,
-  ArrowDownAZ,
-  ArrowUpZA,
   MoreVertical,
 } from "lucide-react";
 
@@ -197,42 +195,20 @@ export default function Home() {
   const [sort, setSort] = useState("recent");
 
   const sortOptions = [
-    {
-      value: "recent",
-      label: "last added",
-      icon: Clock3,
-    },
-    {
-      value: "visited",
-      label: "last visited",
-      icon: History,
-    },
-    {
-      value: "popular",
-      label: "Most used",
-      icon: TrendingUp,
-    },
-    {
-      value: "az",
-      label: "A → Z",
-      icon: ArrowDownAZ,
-    },
-    {
-      value: "za",
-      label: "Z → A",
-      icon: ArrowUpZA,
-    },
+    { value: "recent", label: "last added", icon: Clock3 },
+    { value: "visited", label: "last visited", icon: History },
+    { value: "popular", label: "Most used", icon: TrendingUp },
+    { value: "az", label: "A → Z", icon: ArrowDownAZ },
+    { value: "za", label: "Z → A", icon: ArrowUpZA },
   ];
 
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") return "dark";
-
     return (localStorage.getItem("fh-theme") as Theme) || "dark";
   });
 
   const [engine, setEngine] = useState<SearchEngine>(() => {
     if (typeof window === "undefined") return "duckduckgo";
-
     return (localStorage.getItem("fh-engine") as SearchEngine) || "duckduckgo";
   });
 
@@ -244,7 +220,6 @@ export default function Home() {
 
   const [newTab, setNewTab] = useState(() => {
     if (typeof window === "undefined") return false;
-
     return localStorage.getItem("fh-new-tab") === "true";
   });
 
@@ -348,9 +323,7 @@ export default function Home() {
 
       const matchesCategory = category === "All" || item.category === category;
 
-      if (!search) {
-        return matchesCategory;
-      }
+      if (!search) return matchesCategory;
 
       const name = item.name?.toLowerCase() ?? "";
       const url = item.url?.toLowerCase() ?? "";
@@ -371,19 +344,15 @@ export default function Home() {
       switch (sort) {
         case "az":
           return a.name.localeCompare(b.name);
-
         case "za":
           return b.name.localeCompare(a.name);
-
         case "visited":
           return (
             new Date(b.last_visited_at || 0).getTime() -
             new Date(a.last_visited_at || 0).getTime()
           );
-
         case "popular":
           return (b.visit_count || 0) - (a.visit_count || 0);
-
         case "recent":
         default:
           return (
@@ -475,9 +444,7 @@ export default function Home() {
       )
     );
 
-    if (!supabase || item.id.startsWith("demo-")) {
-      return;
-    }
+    if (!supabase || item.id.startsWith("demo-")) return;
 
     const { error } = await supabase
       .from("favourites")
@@ -600,7 +567,6 @@ export default function Home() {
 
       if (insertError) {
         setFavourites(items => items.filter(item => item.id !== optimistic.id));
-
         setError("We could not add that favourite. Please try again.");
       } else {
         setFavourites(items =>
@@ -613,9 +579,7 @@ export default function Home() {
   const removeFavourite = async (item: Favourite) => {
     setActionMenuItem(null);
 
-    if (!window.confirm(`Remove ${item.name} from your favourites?`)) {
-      return;
-    }
+    if (!window.confirm(`Remove ${item.name} from your favourites?`)) return;
 
     const previous = favourites;
 
@@ -649,16 +613,17 @@ export default function Home() {
   const isSignedOut = isSupabaseConfigured && !session;
 
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <div className="brand">
+    <div className="min-h-screen">
+      {/* TOP BAR */}
+      <header className="relative mx-auto flex max-w-[1180px] items-center justify-between px-[34px] py-6 max-[520px]:px-[17px] max-[520px]:py-[18px]">
+        <div className="flex items-center gap-[9px] text-[14px] font-[750] tracking-[-0.02em]">
           <span>LynkHive</span>
         </div>
 
-        <div className="top-actions">
+        <div className="flex items-center gap-[10px]">
           <button
             type="button"
-            className="theme-toggle"
+            className="grid h-8 w-8 place-items-center rounded-[30px] border border-[var(--line)] bg-[var(--accent-soft)] text-[var(--accent)] transition duration-[180ms] ease-in hover:-translate-y-px hover:brightness-105"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             aria-label={
               theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
@@ -672,9 +637,9 @@ export default function Home() {
 
           {isSupabaseConfigured ? (
             session ? (
-              <div className="account">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] py-1 pl-1 pr-[10px] shadow-[0_4px_14px_rgba(27,38,31,0.04)] transition duration-[180ms] ease-in hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] hover:bg-[var(--surface)] hover:shadow-[0_6px_18px_rgba(27,38,31,0.07)]">
                 <button
-                  className="avatar"
+                  className="h-[30px] w-[30px] flex-none overflow-hidden rounded-full border-0 bg-[var(--accent-soft)] p-0 text-[var(--accent)]"
                   title={
                     session.user.user_metadata?.user_name ||
                     session.user.user_metadata?.preferred_username ||
@@ -683,6 +648,7 @@ export default function Home() {
                   }
                 >
                   <img
+                    className="block h-full w-full object-cover"
                     src={
                       session.user.user_metadata?.avatar_url ||
                       session.user.user_metadata?.picture
@@ -695,7 +661,7 @@ export default function Home() {
                   />
                 </button>
 
-                <span className="username">
+                <span className="block max-w-[120px] overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-[650] tracking-[-0.01em] text-[var(--ink)] max-[520px]:hidden">
                   @
                   {session.user.user_metadata?.user_name ||
                     session.user.user_metadata?.preferred_username ||
@@ -703,7 +669,7 @@ export default function Home() {
                 </span>
 
                 <button
-                  className="icon-button"
+                  className="ml-0.5 grid h-[27px] w-[27px] place-items-center rounded-full border-0 bg-transparent text-[var(--muted)] transition duration-[180ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
                   onClick={signOut}
                   title="Sign out"
                 >
@@ -711,85 +677,115 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <button className="button secondary" onClick={signIn}>
+              <button
+                className="inline-flex items-center justify-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-[14px] py-[10px] text-[13px] font-bold text-[var(--ink)] transition duration-[180ms] ease-in hover:border-[var(--accent)] active:scale-[0.97]"
+                onClick={signIn}
+              >
                 <LogIn size={16} /> Sign in with Github
               </button>
             )
           ) : (
-            <span className="preview-pill">Preview mode</span>
+            <span className="rounded-[99px] bg-[var(--accent-soft)] px-[10px] py-[7px] text-[11px] font-bold tracking-[0.02em] text-[var(--accent)]">
+              Preview mode
+            </span>
           )}
         </div>
       </header>
 
-      <main className="main-content">
-        <section className="hero">
-          <p className="eyebrow">YOUR PERSONAL START PAGE</p>
+      {/* MAIN */}
+      <main className="mx-auto max-w-[1200px] px-[34px] pb-[42px] pt-[50px] max-[800px]:pt-5 max-[520px]:px-[17px] max-[520px]:pb-[34px] max-[520px]:pt-[22px]">
+        {/* HERO */}
+        <section className="px-0 pb-[54px] pt-[34px] text-center max-[800px]:pb-[42px]">
+          <p className="m-0 mb-[13px] text-[10px] font-extrabold uppercase tracking-[0.16em] text-[var(--accent)]">
+            YOUR PERSONAL START PAGE
+          </p>
 
-          <p className="hero-copy">
+          <p className="mt-[22px] text-[15px] text-[var(--muted)] max-[520px]:text-[13px]">
             A quiet place for the sites you return to every day.
           </p>
         </section>
 
+        {/* ALERTS */}
         {error && (
-          <div className="alert error">
-            <span>{error}</span>
+          <div className="mx-auto mb-5 flex max-w-[700px] items-center justify-between gap-[9px] rounded-[10px] bg-[#fae9e7] px-[13px] py-[11px] text-[12px] text-[#98514b]">
+            <span className="flex-1">{error}</span>
 
-            <button onClick={() => setError("")}>
+            <button
+              className="border-0 bg-none text-current"
+              onClick={() => setError("")}
+            >
               <X size={15} />
             </button>
           </div>
         )}
 
         {notice && (
-          <div className="alert success">
+          <div className="mx-auto mb-5 flex max-w-[700px] items-center justify-between gap-[9px] rounded-[10px] bg-[var(--accent-soft)] px-[13px] py-[11px] text-[12px] text-[var(--accent)]">
             <Check size={15} />
 
-            <span>{notice}</span>
+            <span className="flex-1">{notice}</span>
 
-            <button onClick={() => setNotice("")}>
+            <button
+              className="border-0 bg-none text-current"
+              onClick={() => setNotice("")}
+            >
               <X size={15} />
             </button>
           </div>
         )}
 
         {isSignedOut ? (
-          <section className="auth-card">
-            <div className="auth-icon">
+          <section className="rounded-[18px] border border-dashed border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_70%,transparent)] px-5 py-[50px] text-center">
+            <div className="mx-auto mb-[17px] grid h-[47px] w-[47px] place-items-center rounded-[15px] bg-[var(--accent-soft)] text-[var(--accent)]">
               <Sparkles size={22} />
             </div>
 
-            <h2>Your favourites, everywhere.</h2>
+            <h2 className="m-0 mb-2 font-serif text-[24px] font-medium">
+              Your favourites, everywhere.
+            </h2>
 
-            <p>
+            <p className="mx-auto mb-5 max-w-[360px] text-[13px] text-[var(--muted)]">
               Sign in with Github to sync your personal start page across every
               device.
             </p>
 
-            <button className="button primary" onClick={signIn}>
+            <button
+              className="inline-flex items-center justify-center gap-2 rounded-[10px] border-0 bg-[var(--accent-soft)] px-[14px] py-[10px] text-[13px] font-bold text-[var(--ink)] shadow-[0_5px_15px_rgba(49,92,76,0.18)] transition duration-[180ms] ease-in hover:-translate-y-px hover:brightness-105 active:scale-[0.97]"
+              onClick={signIn}
+            >
               <LogIn size={16} /> Continue with Github
             </button>
           </section>
         ) : (
           <>
-            <section className="section-head">
+            {/* SECTION HEAD */}
+            <section className="mb-[22px] flex items-end justify-between max-[520px]:items-center">
               <div>
-                <p className="eyebrow">
+                <p className="m-0 mb-[13px] text-[10px] font-extrabold uppercase tracking-[0.16em] text-[var(--accent)]">
                   Your collection (<span>{favourites.length}</span>)
                 </p>
               </div>
 
-              <button className="button primary" onClick={openAdd}>
+              <button
+                className="inline-flex items-center justify-center gap-2 rounded-[10px] border-0 bg-[var(--accent-soft)] px-[14px] py-[10px] text-[13px] font-bold text-[var(--ink)] shadow-[0_5px_15px_rgba(49,92,76,0.18)] transition duration-[180ms] ease-in hover:-translate-y-px hover:brightness-105 active:scale-[0.97] max-[520px]:px-[10px] max-[520px]:py-[9px] max-[520px]:text-[12px]"
+                onClick={openAdd}
+              >
                 <Plus size={17} /> New
               </button>
             </section>
 
-            <div className="filters">
-              <div className="category-filter-wrapper">
-                <div className="category-filters">
+            {/* FILTERS */}
+            <div className="mb-[18px] flex w-full min-w-0 items-center justify-between gap-2">
+              <div className="h-9 min-w-0 rounded-[12px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_70%,transparent)] p-1">
+                <div className="flex h-full min-w-0 items-center gap-1.5 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
                   {categories.map(item => (
                     <button
                       key={item}
-                      className={category === item ? "filter active" : "filter"}
+                      className={`flex-none whitespace-nowrap rounded-[8px] border border-transparent px-[11px] py-1.5 text-[12px] font-[650] text-[var(--muted)] transition-[background,color,border-color] duration-[150ms] ease-[ease] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] ${
+                        category === item
+                          ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                          : ""
+                      }`}
                       onClick={() => setCategory(item)}
                     >
                       {item}
@@ -798,10 +794,13 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className={`sort-menu ${sortMenuOpen ? "open" : ""}`}>
+              {/* SORT */}
+              <div
+                className={`relative flex-none ${sortMenuOpen ? "open" : ""}`}
+              >
                 <button
                   type="button"
-                  className="sort-trigger"
+                  className="inline-flex h-9 items-center justify-center gap-[7px] whitespace-nowrap rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-3 text-[12px] font-bold text-[var(--ink)] transition-[border-color,background,transform] duration-[180ms] ease-[ease] hover:border-[var(--accent)] active:scale-[0.97] max-[520px]:px-[10px]"
                   onClick={() => setSortMenuOpen(open => !open)}
                   aria-label="Sort favourites"
                   aria-expanded={sortMenuOpen}
@@ -816,13 +815,21 @@ export default function Home() {
                     return (
                       <>
                         <Icon size={15} />
-                        <span>{selected.label}</span>
+                        <span className="max-[520px]:hidden">
+                          {selected.label}
+                        </span>
                       </>
                     );
                   })()}
                 </button>
 
-                <div className="sort-dropdown">
+                <div
+                  className={`absolute right-[calc(100%+8px)] top-0 z-[30] flex w-max max-w-[calc(100vw-32px)] items-center gap-1 overflow-hidden whitespace-nowrap rounded-[10px] border border-[var(--line)] bg-[var(--surface)] p-1 shadow-[0_12px_30px_rgba(0,0,0,0.12)] transition-[transform,opacity] duration-[220ms] [transform-origin:right_center] ${
+                    sortMenuOpen
+                      ? "pointer-events-auto translate-x-0 scale-x-100 opacity-100"
+                      : "pointer-events-none translate-x-[10px] scale-x-[0.01] opacity-0"
+                  } max-[520px]:right-0 max-[520px]:top-[calc(100%+8px)] max-[520px]:block max-[520px]:min-w-[145px] max-[520px]:max-w-none max-[520px]:rounded-[12px] max-[520px]:p-1.5 max-[520px]:[transform-origin:top_right]`}
+                >
                   {sortOptions.map(option => {
                     const Icon = option.icon;
 
@@ -830,7 +837,11 @@ export default function Home() {
                       <button
                         key={option.value}
                         type="button"
-                        className={sort === option.value ? "active" : ""}
+                        className={`inline-flex h-7 min-w-[34px] flex-none items-center justify-center gap-[7px] rounded-[7px] border-0 bg-transparent px-[9px] text-[11px] text-[var(--ink)] transition-[background,color] duration-[150ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] max-[520px]:flex max-[520px]:h-auto max-[520px]:w-full max-[520px]:justify-start max-[520px]:gap-[9px] max-[520px]:rounded-lg max-[520px]:px-[10px] max-[520px]:py-[9px] max-[520px]:text-[12px] ${
+                          sort === option.value
+                            ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                            : ""
+                        }`}
                         onClick={() => {
                           setSort(option.value);
                           setSortMenuOpen(false);
@@ -845,29 +856,37 @@ export default function Home() {
               </div>
             </div>
 
+            {/* CONTENT */}
             {loading ? (
-              <div className="skeleton-grid">
+              <div className="grid grid-cols-[repeat(5,minmax(0,1fr))] gap-3 max-[800px]:grid-cols-[repeat(2,minmax(0,1fr))] max-[520px]:gap-[9px]">
                 {[1, 2, 3, 4, 5].map(item => (
-                  <div className="skeleton-card" key={item}>
-                    <div className="skeleton-icon" />
+                  <div
+                    className="flex h-[72px] gap-2 rounded-[14px] border border-[var(--line)] bg-[linear-gradient(90deg,var(--surface),color-mix(in_srgb,var(--line)_45%,var(--surface)),var(--surface))] bg-[length:200%_100%] p-[11px_12px] animate-[shimmer_1.5s_infinite] max-[520px]:h-[68px] max-[520px]:rounded-[13px] max-[520px]:p-[10px]"
+                    key={item}
+                  >
+                    <div className="h-10 w-10 flex-none rounded-[9px] bg-[color-mix(in_srgb,var(--line)_65%,var(--surface))] max-[520px]:h-8 max-[520px]:w-8" />
 
-                    <div className="skeleton-card-body">
-                      <div className="skeleton-card-texts">
-                        <div className="skeleton-name" />
-                        <div className="skeleton-category" />
+                    <div className="flex min-w-0 w-full items-center justify-between">
+                      <div className="flex min-w-0 flex-col gap-1.5">
+                        <div className="h-[10px] w-[65px] rounded-[99px] bg-[color-mix(in_srgb,var(--line)_70%,var(--surface))]" />
+                        <div className="h-2 w-[58px] rounded-[99px] bg-[color-mix(in_srgb,var(--line)_65%,var(--surface))]" />
                       </div>
 
-                      <div className="skeleton-menu" />
+                      <div className="h-[27px] w-[27px] flex-none rounded-[7px] bg-[color-mix(in_srgb,var(--line)_55%,var(--surface))]" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : visible.length ? (
-              <div className="favourite-grid">
+              <div className="mb-[100px] grid grid-cols-[repeat(5,minmax(0,1fr))] gap-3 max-[800px]:grid-cols-[repeat(2,minmax(0,1fr))] max-[520px]:gap-[9px]">
                 {visible.map(item => (
-                  <article key={item.id} className="favourite-card">
-                    <div className="favicon-wrap">
+                  <article
+                    key={item.id}
+                    className="flex gap-2 rounded-[14px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_90%,transparent)] p-[11px_12px] shadow-[0_4px_15px_rgba(25,35,29,0.025)] transition-[transform,border-color,box-shadow] duration-200 ease-in hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] hover:shadow-[var(--shadow)] max-[520px]:rounded-[13px] max-[520px]:p-[10px]"
+                  >
+                    <div className="grid h-10 w-10 flex-none place-items-center rounded-[9px] bg-[var(--accent-soft)] max-[520px]:h-8 max-[520px]:w-8">
                       <img
+                        className="h-6 w-6 rounded-[5px] object-contain"
                         src={item.icon || domainIcon(item.url) || ""}
                         alt=""
                         onError={e => {
@@ -879,63 +898,57 @@ export default function Home() {
                         }}
                       />
 
-                      <span className="favicon-fallback hidden">
+                      <span className="hidden text-[9px] font-extrabold text-[var(--accent)]">
                         {initials(item.name)}
                       </span>
                     </div>
 
-                    <div className="favourite-card-body">
-                      <div className="favourite-card-texts">
+                    <div className="flex w-full items-center justify-between">
+                      <div className="flex min-w-0 flex-col gap-1.5">
                         <a
-                          className="favourite-name"
+                          className="flex min-w-0 flex-1 items-center gap-[9px] text-inherit no-underline max-[520px]:gap-[7px]"
                           href={item.url}
                           target={newTab ? "_blank" : undefined}
                           rel={newTab ? "noreferrer" : undefined}
                           onClick={async event => {
                             if (!newTab) {
                               event.preventDefault();
-
                               await trackVisit(item);
-
                               window.location.href = item.url;
                             } else {
                               void trackVisit(item);
                             }
                           }}
                         >
-                          <h3>{item.name}</h3>
+                          <h3 className="m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-bold tracking-[-0.02em] text-[var(--ink)] max-[520px]:text-[12px]">
+                            {item.name}
+                          </h3>
                         </a>
 
                         <a
-                          className="favourite-category"
+                          className="flex text-[10px] font-semibold text-[var(--muted)] no-underline max-[520px]:text-[9px]"
                           href={item.url}
                           target={newTab ? "_blank" : undefined}
                           rel={newTab ? "noreferrer" : undefined}
                           onClick={async event => {
                             if (!newTab) {
                               event.preventDefault();
-
                               await trackVisit(item);
-
                               window.location.href = item.url;
                             } else {
                               void trackVisit(item);
                             }
                           }}
                         >
-                          <span>{item.category || "Uncategorized"}</span>
-
-                          {/* <ArrowUpRight
-                        className="arrow"
-                        size={16}
-                      /> */}
+                          <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                            {item.category || "Uncategorized"}
+                          </span>
                         </a>
                       </div>
 
-                      {/* 3 dots */}
                       <button
                         type="button"
-                        className="more-button"
+                        className="grid h-[27px] w-[27px] flex-none place-items-center rounded-[7px] border-0 bg-transparent p-0 text-[var(--muted)] opacity-[0.65] transition-[background,color,opacity] duration-[150ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] group-hover:opacity-100 max-[520px]:h-[25px] max-[520px]:w-[25px]"
                         aria-label={`Options for ${item.name}`}
                         title="More options"
                         onClick={() => setActionMenuItem(item)}
@@ -947,25 +960,28 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="empty-state">
-                <div className="empty-icon">
+              <div className="rounded-[18px] border border-dashed border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_70%,transparent)] px-5 py-[50px] text-center">
+                <div className="mx-auto mb-[17px] grid h-[47px] w-[47px] place-items-center rounded-[15px] bg-[var(--accent-soft)] text-[var(--accent)]">
                   <Sparkles size={20} />
                 </div>
 
-                <h3>
+                <h3 className="m-0 mb-2 font-serif text-[24px] font-medium">
                   {query || category !== "All"
                     ? "Nothing matches that filter."
                     : "No favourites yet."}
                 </h3>
 
-                <p>
+                <p className="mx-auto mb-5 max-w-[360px] text-[13px] text-[var(--muted)]">
                   {query || category !== "All"
                     ? "Try another search or category."
                     : "Add your first website to get started."}
                 </p>
 
                 {!query && category === "All" && (
-                  <button className="button secondary" onClick={openAdd}>
+                  <button
+                    className="inline-flex items-center justify-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-[14px] py-[10px] text-[13px] font-bold text-[var(--ink)] transition duration-[180ms] ease-in hover:border-[var(--accent)] active:scale-[0.97]"
+                    onClick={openAdd}
+                  >
                     <Plus size={16} /> Add favourite
                   </button>
                 )}
@@ -974,13 +990,18 @@ export default function Home() {
           </>
         )}
 
-        <div className="search-fade" />
+        {/* SEARCH FADE */}
+        <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-[8] h-[200px] bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--bg)_30%,transparent)_20%,color-mix(in_srgb,var(--bg)_65%,transparent)_45%,color-mix(in_srgb,var(--bg)_90%,transparent)_65%,var(--bg)_100%)]" />
 
-        <form className="search-wrap" onSubmit={submitSearch}>
-          <div className="search-engine-picker">
+        {/* SEARCH */}
+        <form
+          className="fixed bottom-8 left-0 right-0 z-[9] mx-auto flex max-w-[620px] items-center gap-3 rounded-[14px] border border-[var(--line)] bg-[var(--surface)] py-1.5 pl-[14px] pr-[7px] shadow-[0_10px_30px_rgba(26,35,29,0.045)] max-[520px]:left-5 max-[520px]:right-5 max-[520px]:mt-[72px]"
+          onSubmit={submitSearch}
+        >
+          <div className="relative grid flex-none place-items-center">
             <button
               type="button"
-              className="search-engine-trigger"
+              className="inline-flex min-w-[100px] items-center gap-[7px] rounded-[8px] border-0 bg-transparent p-[7px] text-[11px] font-[750] text-[var(--ink)] hover:bg-[var(--accent-soft)] max-[520px]:w-9 max-[520px]:min-w-9 max-[520px]:justify-center"
               onClick={() => setSearchMenuOpen(open => !open)}
               aria-label={`Search engine: ${selectedEngine.name}`}
               aria-expanded={searchMenuOpen}
@@ -988,23 +1009,27 @@ export default function Home() {
               <img
                 src={engineIcon(selectedEngine.domain)}
                 alt=""
-                className="search-engine-icon"
+                className="h-[19px] w-[19px] flex-none rounded-[5px] object-contain"
               />
 
-              <span className="search-engine-name">{selectedEngine.name}</span>
+              <span className="overflow-hidden text-ellipsis max-[520px]:hidden">
+                {selectedEngine.name}
+              </span>
             </button>
 
             {searchMenuOpen && (
-              <div className="search-engine-menu">
+              <div className="absolute bottom-[calc(100%+16px)] left-0 z-[30] w-[140px] rounded-[13px] border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-[0_16px_40px_rgba(24,34,28,0.16)] max-[520px]:left-[-4px] max-[520px]:w-[178px]">
+                <div className="pointer-events-none absolute bottom-[-6px] left-[25px] h-[11px] w-[11px] rotate-45 border-b border-r border-[var(--line)] bg-[var(--surface)]" />
+
                 {SEARCH_ENGINES.map(searchEngine => (
                   <button
                     type="button"
                     key={searchEngine.id}
-                    className={
+                    className={`flex w-full items-center gap-[10px] rounded-[8px] border-0 bg-transparent px-[10px] py-[9px] text-left text-[12px] font-[650] text-[var(--ink)] ${
                       searchEngine.id === engine
-                        ? "search-engine-option active"
-                        : "search-engine-option"
-                    }
+                        ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                        : ""
+                    } hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]`}
                     onClick={() => {
                       setEngine(searchEngine.id);
                       setSearchMenuOpen(false);
@@ -1013,7 +1038,7 @@ export default function Home() {
                     <img
                       src={engineIcon(searchEngine.domain)}
                       alt=""
-                      className="search-engine-icon"
+                      className="h-[19px] w-[19px] flex-none rounded-[5px] object-contain"
                     />
 
                     <span>{searchEngine.name}</span>
@@ -1029,37 +1054,46 @@ export default function Home() {
             onChange={e => setQuery(e.target.value)}
             placeholder="type in your query..."
             aria-label="Search the web"
+            className="w-full min-w-0 border-0 bg-transparent text-[14px] text-[var(--ink)] outline-0 placeholder:text-[var(--muted)]"
           />
 
-          <kbd>/</kbd>
+          <kbd className="rounded-[5px] border border-[var(--line)] px-1.5 py-[3px] text-[10px] text-[var(--muted)] max-[520px]:hidden">
+            /
+          </kbd>
 
-          <button type="submit">Search</button>
+          <button
+            type="submit"
+            className="rounded-[9px] border-0 bg-[var(--accent-soft)] px-[13px] py-[9px] text-[12px] font-[750] text-[var(--ink)]"
+          >
+            Search
+          </button>
         </form>
       </main>
 
-      {/* =====================================================
-          Favourite Actions Modal
-          ===================================================== */}
-
+      {/* ACTION MODAL */}
       {actionMenuItem && (
         <div
-          className="action-modal-backdrop"
+          className="fixed inset-0 z-[25] grid place-items-center bg-[rgba(19,25,21,0.18)] p-[18px] backdrop-blur-[3px]"
           onMouseDown={() => setActionMenuItem(null)}
         >
           <div
-            className="action-modal"
+            className="w-[min(100%,280px)] animate-[actionModalIn_150ms_ease] rounded-[15px] border border-[var(--line)] bg-[var(--surface)] p-[14px] shadow-[0_20px_55px_rgba(0,0,0,0.16)]"
             onMouseDown={event => event.stopPropagation()}
           >
-            <div className="action-modal-heading">
+            <div className="mb-[10px] flex items-center justify-between gap-[10px]">
               <div>
-                <span className="action-modal-kicker">Favourite</span>
+                <span className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[var(--muted)]">
+                  Favourite
+                </span>
 
-                <h3>{actionMenuItem.name}</h3>
+                <h3 className="m-[2px_0_0] max-w-[190px] overflow-hidden text-ellipsis whitespace-nowrap text-[14px] font-bold text-[var(--ink)]">
+                  {actionMenuItem.name}
+                </h3>
               </div>
 
               <button
                 type="button"
-                className="icon-button"
+                className="grid h-[35px] w-[35px] place-items-center rounded-[30px] border border-[var(--line)] bg-transparent text-[var(--muted)] transition duration-[180ms] ease-in hover:-translate-y-px hover:bg-[var(--surface)] hover:text-[var(--ink)]"
                 onClick={() => setActionMenuItem(null)}
                 aria-label="Close"
               >
@@ -1067,15 +1101,19 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="action-modal-options">
-              <button type="button" onClick={() => openEdit(actionMenuItem)}>
+            <div className="grid gap-[5px]">
+              <button
+                type="button"
+                className="flex w-full items-center gap-[10px] rounded-[9px] border-0 bg-transparent px-[11px] py-[10px] text-left text-[12px] font-[650] text-[var(--ink)] transition-[background,color] duration-[150ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+                onClick={() => openEdit(actionMenuItem)}
+              >
                 <Pencil size={16} />
                 <span>Edit</span>
               </button>
 
               <button
                 type="button"
-                className="danger-option"
+                className="flex w-full items-center gap-[10px] rounded-[9px] border-0 bg-transparent px-[11px] py-[10px] text-left text-[12px] font-[650] text-[var(--ink)] transition-[background,color] duration-[150ms] ease-in hover:bg-[#fae9e7] hover:text-[#b42318]"
                 onClick={() => removeFavourite(actionMenuItem)}
               >
                 <Trash2 size={16} />
@@ -1086,39 +1124,51 @@ export default function Home() {
         </div>
       )}
 
-      {/* =====================================================
-          Add / Edit Modal
-          ===================================================== */}
-
+      {/* ADD / EDIT MODAL */}
       {dialog && (
-        <div className="modal-backdrop" onMouseDown={() => setDialog(null)}>
-          <div className="modal" onMouseDown={e => e.stopPropagation()}>
-            <div className="modal-heading">
+        <div
+          className="fixed inset-0 z-20 grid place-items-center bg-[rgba(19,25,21,0.36)] p-[18px] backdrop-blur-[5px]"
+          onMouseDown={() => setDialog(null)}
+        >
+          <div
+            className="w-[min(100%,450px)] rounded-[19px] bg-[var(--surface)] p-[22px] shadow-[0_25px_80px_rgba(0,0,0,0.2)]"
+            onMouseDown={e => e.stopPropagation()}
+          >
+            <div className="mb-[22px] flex justify-between">
               <div>
-                <p className="section-kicker">
+                <p className="m-0 mb-[13px] text-[10px] font-extrabold uppercase tracking-[0.16em] text-[var(--accent)]">
                   {editing ? "Refine your shortcut" : "Add to your collection"}
                 </p>
 
-                <h2>{editing ? "Edit favourite" : "New favourite"}</h2>
+                <h2 className="m-0 font-serif text-[27px] font-medium">
+                  {editing ? "Edit favourite" : "New favourite"}
+                </h2>
               </div>
 
-              <button className="icon-button" onClick={() => setDialog(null)}>
+              <button
+                className="grid h-[35px] w-[35px] place-items-center rounded-[30px] border border-[var(--line)] bg-transparent text-[var(--muted)] transition duration-[180ms] ease-in hover:-translate-y-px hover:bg-[var(--surface)] hover:text-[var(--ink)]"
+                onClick={() => setDialog(null)}
+              >
                 <X size={18} />
               </button>
             </div>
 
             {modalError && (
-              <div className="alert error">
-                <span>{modalError}</span>
+              <div className="mb-5 flex items-center justify-between gap-[9px] rounded-[10px] bg-[#fae9e7] px-[13px] py-[11px] text-[12px] text-[#98514b]">
+                <span className="flex-1">{modalError}</span>
 
-                <button type="button" onClick={() => setModalError("")}>
+                <button
+                  type="button"
+                  className="border-0 bg-none text-current"
+                  onClick={() => setModalError("")}
+                >
                   <X size={15} />
                 </button>
               </div>
             )}
 
-            <form onSubmit={saveFavourite}>
-              <label>
+            <form className="grid gap-[14px]" onSubmit={saveFavourite}>
+              <label className="grid gap-1.5 text-[12px] font-bold text-[var(--muted)]">
                 Name
                 <input
                   autoFocus
@@ -1130,10 +1180,11 @@ export default function Home() {
                     })
                   }
                   placeholder="GitHub"
+                  className="w-full rounded-[9px] border border-[var(--line)] bg-[var(--bg)] px-3 py-[11px] text-[13px] text-[var(--ink)] outline-0 focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_var(--accent-soft)]"
                 />
               </label>
 
-              <label>
+              <label className="grid gap-1.5 text-[12px] font-bold text-[var(--muted)]">
                 URL
                 <input
                   value={draft.url}
@@ -1154,16 +1205,19 @@ export default function Home() {
                     }
                   }}
                   placeholder="https://github.com"
+                  className="w-full rounded-[9px] border border-[var(--line)] bg-[var(--bg)] px-3 py-[11px] text-[13px] text-[var(--ink)] outline-0 focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_var(--accent-soft)]"
                 />
               </label>
 
-              <label>
+              <label className="grid gap-1.5 text-[12px] font-bold text-[var(--muted)]">
                 Category
-                <div className="category-pills">
+                <div className="mt-2 flex flex-wrap gap-2">
                   <button
                     type="button"
-                    className={`category-pill ${
-                      !draft.category ? "active" : ""
+                    className={`rounded-full border px-3 py-[7px] text-[13px] transition duration-[150ms] ease-in hover:border-[var(--accent)] ${
+                      !draft.category
+                        ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
+                        : "border-[var(--line)] bg-transparent text-[var(--ink)]"
                     }`}
                     onClick={() =>
                       setDraft({
@@ -1179,8 +1233,10 @@ export default function Home() {
                     <button
                       key={option}
                       type="button"
-                      className={`category-pill ${
-                        draft.category === option ? "active" : ""
+                      className={`rounded-full border px-3 py-[7px] text-[13px] transition duration-[150ms] ease-in hover:border-[var(--accent)] ${
+                        draft.category === option
+                          ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
+                          : "border-[var(--line)] bg-transparent text-[var(--ink)]"
                       }`}
                       onClick={() =>
                         setDraft({
@@ -1195,8 +1251,9 @@ export default function Home() {
                 </div>
               </label>
 
-              <label>
-                Custom icon URL <span className="optional">optional</span>
+              <label className="grid gap-1.5 text-[12px] font-bold text-[var(--muted)]">
+                Custom icon URL{" "}
+                <span className="font-medium opacity-70">optional</span>
                 <input
                   value={draft.icon || ""}
                   onChange={e =>
@@ -1206,19 +1263,23 @@ export default function Home() {
                     })
                   }
                   placeholder="Automatically detected from the URL"
+                  className="w-full rounded-[9px] border border-[var(--line)] bg-[var(--bg)] px-3 py-[11px] text-[13px] text-[var(--ink)] outline-0 focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_var(--accent-soft)]"
                 />
               </label>
 
-              <div className="modal-actions">
+              <div className="mt-2 flex justify-end gap-2">
                 <button
                   type="button"
-                  className="button secondary"
+                  className="inline-flex items-center justify-center gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-[14px] py-[10px] text-[13px] font-bold text-[var(--ink)] transition duration-[180ms] ease-in hover:border-[var(--accent)] active:scale-[0.97]"
                   onClick={() => setDialog(null)}
                 >
                   Cancel
                 </button>
 
-                <button type="submit" className="button primary">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center gap-2 rounded-[10px] border-0 bg-[var(--accent-soft)] px-[14px] py-[10px] text-[13px] font-bold text-[var(--ink)] shadow-[0_5px_15px_rgba(49,92,76,0.18)] transition duration-[180ms] ease-in hover:-translate-y-px hover:brightness-105 active:scale-[0.97]"
+                >
                   {editing ? "Save changes" : "Add favourite"}
                 </button>
               </div>
