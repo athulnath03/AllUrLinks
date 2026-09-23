@@ -115,6 +115,17 @@ const demoFavourites: Favourite[] = [
     created_at: "",
     updated_at: "",
   },
+  {
+    id: "demo-5",
+    user_id: "demo",
+    name: "Ashna AI",
+    url: "https://app.ashna.ai",
+    icon: null,
+    category: "AI",
+    position: 3,
+    created_at: "",
+    updated_at: "",
+  },
 ];
 
 function domainIcon(url: string) {
@@ -241,13 +252,36 @@ export default function Home() {
 
   const visible = useMemo(
     () =>
-      favourites.filter(
-        item =>
-          (category === "All" || item.category === category) &&
-          `${item.name} ${item.url}`.toLowerCase().includes(query.toLowerCase())
-      ),
+      favourites.filter(item => {
+        const search = query.trim().toLowerCase();
+
+        const matchesCategory =
+          category === "All" || item.category === category;
+
+        if (!search) {
+          return matchesCategory;
+        }
+
+        const name = item.name?.toLowerCase() ?? "";
+        const url = item.url?.toLowerCase() ?? "";
+        const itemCategory = item.category?.toLowerCase() ?? "";
+
+        // Name and URL can use normal substring matching
+        const matchesNameOrUrl = name.includes(search) || url.includes(search);
+
+        // Category matching: match from the beginning of a category
+        // or as a complete word, rather than arbitrary characters.
+        const categoryWords = itemCategory.split(/[^a-z0-9]+/);
+
+        const matchesCategoryName = categoryWords.some(word =>
+          word.startsWith(search)
+        );
+
+        return matchesCategory && (matchesNameOrUrl || matchesCategoryName);
+      }),
     [favourites, category, query]
   );
+
   const categories = useMemo(
     () => [
       "All",
@@ -657,6 +691,7 @@ export default function Home() {
             )}
           </>
         )}
+        <div className="search-fade" />
         <form className="search-wrap" onSubmit={submitSearch}>
           <div className="search-engine-picker">
             <button
@@ -744,22 +779,45 @@ export default function Home() {
                 <input
                   value={draft.url}
                   onChange={e => setDraft({ ...draft, url: e.target.value })}
+                  onBlur={() => {
+                    const url = draft.url.trim();
+
+                    if (url && !/^https?:\/\//i.test(url)) {
+                      setDraft({
+                        ...draft,
+                        url: `https://${url}`,
+                      });
+                    }
+                  }}
                   placeholder="https://github.com"
                 />
               </label>
               <label>
                 Category
-                <select
-                  value={draft.category || ""}
-                  onChange={e =>
-                    setDraft({ ...draft, category: e.target.value })
-                  }
-                >
-                  <option value="">No category</option>
+                <div className="category-pills">
+                  <button
+                    type="button"
+                    className={`category-pill ${
+                      !draft.category ? "active" : ""
+                    }`}
+                    onClick={() => setDraft({ ...draft, category: "" })}
+                  >
+                    No category
+                  </button>
+
                   {CATEGORY_OPTIONS.map(option => (
-                    <option key={option}>{option}</option>
+                    <button
+                      key={option}
+                      type="button"
+                      className={`category-pill ${
+                        draft.category === option ? "active" : ""
+                      }`}
+                      onClick={() => setDraft({ ...draft, category: option })}
+                    >
+                      {option}
+                    </button>
                   ))}
-                </select>
+                </div>
               </label>
               <label>
                 Custom icon URL <span className="optional">optional</span>

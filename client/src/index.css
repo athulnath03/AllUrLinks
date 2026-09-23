@@ -208,7 +208,7 @@ button {
   accent-color: var(--accent);
 }
 .main-content {
-  max-width: 1050px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 50px 34px 42px;
 }
@@ -285,8 +285,9 @@ button {
 }
 .favourite-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
+  margin-bottom: 100px;
 }
 .favourite-card {
   /* min-height: 178px; */
@@ -382,7 +383,31 @@ button {
   color: var(--muted);
   opacity: 0.5;
 }
+
+
+/* Bottom fade behind the fixed search bar */
+.search-fade {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 200px;
+  z-index: 8;
+  pointer-events: none;
+
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--bg) 30%, transparent) 20%,
+    color-mix(in srgb, var(--bg) 65%, transparent) 45%,
+    color-mix(in srgb, var(--bg) 90%, transparent) 65%,
+    var(--bg) 100%
+  );
+}
+
+
 .search-wrap {
+  z-index: 9;
   position: fixed;
   left: 0;
   right: 0;
@@ -777,7 +802,7 @@ button {
   }
 
   .username {
-    display: block;
+    display: none;
   }
 }
 
@@ -794,7 +819,34 @@ button {
 }
 
 .username {
-  display: none;
   font-size: 14px;
   opacity: 0.8;
+}
+
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.category-pill {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.category-pill:hover {
+  border-color: var(--accent);
+}
+
+.category-pill.active {
+  background: var(--accent-soft);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
 }
