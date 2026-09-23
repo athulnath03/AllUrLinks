@@ -14,6 +14,11 @@ import {
   Sun,
   Trash2,
   X,
+  ArrowDownAZ,
+  ArrowUpZA,
+  Clock3,
+  History,
+  TrendingUp,
 } from "lucide-react";
 
 type Theme = "system" | "light" | "dark";
@@ -77,8 +82,10 @@ const demoFavourites: Favourite[] = [
     icon: null,
     category: "Development",
     position: 0,
-    created_at: "",
-    updated_at: "",
+    visit_count: 12,
+    last_visited_at: "2026-09-23T10:30:00.000Z",
+    created_at: "2026-09-01T09:00:00.000Z",
+    updated_at: "2026-09-23T10:30:00.000Z",
   },
   {
     id: "demo-2",
@@ -88,8 +95,10 @@ const demoFavourites: Favourite[] = [
     icon: null,
     category: "Work",
     position: 1,
-    created_at: "",
-    updated_at: "",
+    visit_count: 5,
+    last_visited_at: "2026-09-23T08:15:00.000Z",
+    created_at: "2026-09-05T11:00:00.000Z",
+    updated_at: "2026-09-23T08:15:00.000Z",
   },
   {
     id: "demo-3",
@@ -99,8 +108,10 @@ const demoFavourites: Favourite[] = [
     icon: null,
     category: "Entertainment",
     position: 2,
-    created_at: "",
-    updated_at: "",
+    visit_count: 25,
+    last_visited_at: "2026-09-22T18:45:00.000Z",
+    created_at: "2026-09-10T14:30:00.000Z",
+    updated_at: "2026-09-22T18:45:00.000Z",
   },
   {
     id: "demo-4",
@@ -110,8 +121,10 @@ const demoFavourites: Favourite[] = [
     icon: null,
     category: "Tools",
     position: 3,
-    created_at: "",
-    updated_at: "",
+    visit_count: 8,
+    last_visited_at: "2026-09-21T12:20:00.000Z",
+    created_at: "2026-09-15T16:00:00.000Z",
+    updated_at: "2026-09-21T12:20:00.000Z",
   },
   {
     id: "demo-5",
@@ -120,9 +133,11 @@ const demoFavourites: Favourite[] = [
     url: "https://app.ashna.ai",
     icon: null,
     category: "AI",
-    position: 3,
-    created_at: "",
-    updated_at: "",
+    position: 4,
+    visit_count: 18,
+    last_visited_at: "2026-09-20T09:10:00.000Z",
+    created_at: "2026-09-20T17:30:00.000Z",
+    updated_at: "2026-09-20T17:30:00.000Z",
   },
 ];
 
@@ -164,6 +179,36 @@ export default function Home() {
     category: "",
     icon: "",
   });
+
+  const [sort, setSort] = useState("recent");
+  const sortOptions = [
+    {
+      value: "recent",
+      label: "Recently added",
+      icon: Clock3,
+    },
+    {
+      value: "visited",
+      label: "Recently visited",
+      icon: History,
+    },
+    {
+      value: "popular",
+      label: "Most used",
+      icon: TrendingUp,
+    },
+    {
+      value: "az",
+      label: "A → Z",
+      icon: ArrowDownAZ,
+    },
+    {
+      value: "za",
+      label: "Z → A",
+      icon: ArrowUpZA,
+    },
+  ];
+
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem("fh-theme") as Theme) || "dark"
   );
@@ -171,6 +216,8 @@ export default function Home() {
     () => (localStorage.getItem("fh-engine") as SearchEngine) || "duckduckgo"
   );
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
+
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
 
   const selectedEngine =
     SEARCH_ENGINES.find(item => item.id === engine) ?? SEARCH_ENGINES[0];
@@ -248,37 +295,57 @@ export default function Home() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const visible = useMemo(
-    () =>
-      favourites.filter(item => {
-        const search = query.trim().toLowerCase();
+  const visible = useMemo(() => {
+    const filtered = favourites.filter(item => {
+      const search = query.trim().toLowerCase();
 
-        const matchesCategory =
-          category === "All" || item.category === category;
+      const matchesCategory = category === "All" || item.category === category;
 
-        if (!search) {
-          return matchesCategory;
-        }
+      if (!search) {
+        return matchesCategory;
+      }
 
-        const name = item.name?.toLowerCase() ?? "";
-        const url = item.url?.toLowerCase() ?? "";
-        const itemCategory = item.category?.toLowerCase() ?? "";
+      const name = item.name?.toLowerCase() ?? "";
+      const url = item.url?.toLowerCase() ?? "";
+      const itemCategory = item.category?.toLowerCase() ?? "";
 
-        // Name and URL can use normal substring matching
-        const matchesNameOrUrl = name.includes(search) || url.includes(search);
+      const matchesNameOrUrl = name.includes(search) || url.includes(search);
 
-        // Category matching: match from the beginning of a category
-        // or as a complete word, rather than arbitrary characters.
-        const categoryWords = itemCategory.split(/[^a-z0-9]+/);
+      const categoryWords = itemCategory.split(/[^a-z0-9]+/);
 
-        const matchesCategoryName = categoryWords.some(word =>
-          word.startsWith(search)
-        );
+      const matchesCategoryName = categoryWords.some(word =>
+        word.startsWith(search)
+      );
 
-        return matchesCategory && (matchesNameOrUrl || matchesCategoryName);
-      }),
-    [favourites, category, query]
-  );
+      return matchesCategory && (matchesNameOrUrl || matchesCategoryName);
+    });
+
+    return [...filtered].sort((a, b) => {
+      switch (sort) {
+        case "az":
+          return a.name.localeCompare(b.name);
+
+        case "za":
+          return b.name.localeCompare(a.name);
+
+        case "visited":
+          return (
+            new Date(b.last_visited_at || 0).getTime() -
+            new Date(a.last_visited_at || 0).getTime()
+          );
+
+        case "popular":
+          return (b.visit_count || 0) - (a.visit_count || 0);
+
+        case "recent":
+        default:
+          return (
+            new Date(b.created_at || 0).getTime() -
+            new Date(a.created_at || 0).getTime()
+          );
+      }
+    });
+  }, [favourites, category, query, sort]);
 
   const categories = useMemo(
     () => [
@@ -326,6 +393,40 @@ export default function Home() {
     setDialog("edit");
   };
 
+  const trackVisit = async (item: Favourite) => {
+    const now = new Date().toISOString();
+    const visitCount = (item.visit_count || 0) + 1;
+
+    setFavourites(items =>
+      items.map(favourite =>
+        favourite.id === item.id
+          ? {
+              ...favourite,
+              visit_count: visitCount,
+              last_visited_at: now,
+            }
+          : favourite
+      )
+    );
+
+    // Demo/local mode
+    if (!supabase || item.id.startsWith("demo-")) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("favourites")
+      .update({
+        visit_count: visitCount,
+        last_visited_at: now,
+      })
+      .eq("id", item.id);
+
+    if (error) {
+      console.error("Could not track favourite visit:", error);
+    }
+  };
+
   const saveFavourite = async (event: FormEvent) => {
     event.preventDefault();
     setError("");
@@ -349,6 +450,8 @@ export default function Home() {
         icon,
         category: draft.category || null,
         position: editing?.position ?? favourites.length,
+        visit_count: editing?.visit_count ?? 0,
+        last_visited_at: editing?.last_visited_at ?? null,
         created_at: "",
         updated_at: "",
       };
@@ -390,6 +493,8 @@ export default function Home() {
         icon,
         category: draft.category || null,
         position: favourites.length,
+        visit_count: 0,
+        last_visited_at: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -587,7 +692,7 @@ export default function Home() {
           <>
             <section className="section-head">
               <div>
-                <p className="  ">
+                <p className="eyebrow">
                   Your collection (<span>{favourites.length}</span>)
                 </p>
               </div>
@@ -596,15 +701,65 @@ export default function Home() {
               </button>
             </section>
             <div className="filters">
-              {categories.map(item => (
+              <div className="category-filters">
+                {categories.map(item => (
+                  <button
+                    key={item}
+                    className={category === item ? "filter active" : "filter"}
+                    onClick={() => setCategory(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+
+              <div className="sort-menu">
                 <button
-                  key={item}
-                  className={category === item ? "filter active" : "filter"}
-                  onClick={() => setCategory(item)}
+                  type="button"
+                  className="sort-trigger"
+                  onClick={() => setSortMenuOpen(open => !open)}
+                  aria-label="Sort favourites"
+                  aria-expanded={sortMenuOpen}
                 >
-                  {item}
+                  {(() => {
+                    const selected =
+                      sortOptions.find(option => option.value === sort) ??
+                      sortOptions[0];
+
+                    const Icon = selected.icon;
+
+                    return (
+                      <>
+                        <Icon size={15} />
+                        <span>{selected.label}</span>
+                      </>
+                    );
+                  })()}
                 </button>
-              ))}
+
+                {sortMenuOpen && (
+                  <div className="sort-dropdown">
+                    {sortOptions.map(option => {
+                      const Icon = option.icon;
+
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          className={sort === option.value ? "active" : ""}
+                          onClick={() => {
+                            setSort(option.value);
+                            setSortMenuOpen(false);
+                          }}
+                        >
+                          <Icon size={15} />
+                          <span>{option.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
             {loading ? (
               <div className="skeleton-grid">
@@ -644,6 +799,17 @@ export default function Home() {
                       href={item.url}
                       target={newTab ? "_blank" : undefined}
                       rel={newTab ? "noreferrer" : undefined}
+                      onClick={async event => {
+                        if (!newTab) {
+                          event.preventDefault();
+
+                          await trackVisit(item);
+
+                          window.location.href = item.url;
+                        } else {
+                          void trackVisit(item);
+                        }
+                      }}
                     >
                       <div className="favicon-wrap">
                         <img
