@@ -445,6 +445,19 @@ export default function Home() {
           <span>LynkHive</span>
         </div>
         <div className="top-actions">
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            title={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+          >
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
           {isSupabaseConfigured ? (
             session ? (
               <div className="account">
@@ -494,19 +507,6 @@ export default function Home() {
           ) : (
             <span className="preview-pill">Preview mode</span>
           )}
-          <button
-            type="button"
-            className="theme-toggle"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label={
-              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-            }
-            title={
-              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-            }
-          >
-            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
         </div>
       </header>
       <main className="main-content">

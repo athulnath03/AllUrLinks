@@ -103,7 +103,7 @@ button {
   display: grid;
   place-items: center;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 30px;
   background: transparent;
   color: var(--muted);
   transition: 0.18s ease;
@@ -590,7 +590,7 @@ button {
   display: grid;
   place-items: center;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 30px;
   color: var(--accent);
   background: var(--accent-soft);
   transition: 0.18s ease;
