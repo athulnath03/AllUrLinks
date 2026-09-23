@@ -448,15 +448,36 @@ export default function Home() {
           {isSupabaseConfigured ? (
             session ? (
               <div className="account">
-                <button className="avatar" title={session.user.email}>
-                  {(
-                    session.user.user_metadata?.full_name ||
+                <button
+                  className="avatar"
+                  title={
+                    session.user.user_metadata?.user_name ||
+                    session.user.user_metadata?.preferred_username ||
                     session.user.email ||
-                    "U"
-                  )
-                    .slice(0, 1)
-                    .toUpperCase()}
+                    "GitHub user"
+                  }
+                >
+                  <img
+                    src={
+                      session.user.user_metadata?.avatar_url ||
+                      session.user.user_metadata?.picture
+                    }
+                    alt={
+                      session.user.user_metadata?.user_name ||
+                      session.user.user_metadata?.preferred_username ||
+                      "GitHub avatar"
+                    }
+                  />
                 </button>
+
+                <span className="username">
+                  @
+                  {session.user.user_metadata?.user_name ||
+                    session.user.user_metadata?.preferred_username ||
+                    session.user.user_metadata?.user_name ||
+                    "user"}
+                </span>
+
                 <button
                   className="icon-button"
                   onClick={signOut}
@@ -474,22 +495,18 @@ export default function Home() {
             <span className="preview-pill">Preview mode</span>
           )}
           <button
-                type="button"
-                className="theme-toggle"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                aria-label={
-                  theme === "dark"
-                    ? "Switch to light mode"
-                    : "Switch to dark mode"
-                }
-                title={
-                  theme === "dark"
-                    ? "Switch to light mode"
-                    : "Switch to dark mode"
-                }
-              >
-                {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-              </button>
+            type="button"
+            className="theme-toggle"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            title={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+          >
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
         </div>
       </header>
       <main className="main-content">
@@ -534,7 +551,9 @@ export default function Home() {
           <>
             <section className="section-head">
               <div>
-                <p className="section-kicker">Your collection (<span>{favourites.length}</span>)</p>
+                <p className="section-kicker">
+                  Your collection (<span>{favourites.length}</span>)
+                </p>
               </div>
               <button className="button primary" onClick={openAdd}>
                 <Plus size={17} /> New
@@ -695,7 +714,6 @@ export default function Home() {
 
           <button type="submit">Search</button>
         </form>
-
       </main>
       {dialog && (
         <div className="modal-backdrop" onMouseDown={() => setDialog(null)}>

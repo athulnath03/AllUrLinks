@@ -772,7 +772,29 @@ button {
   .search-wrap {
     position: fixed;
     left: 20px;
-    right: 20PX;
+    right: 20px;
     bottom: 32px;
   }
+
+  .username {
+    display: block;
+  }
+}
+
+.avatar {
+  overflow: hidden;
+  padding: 0;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.username {
+  display: none;
+  font-size: 14px;
+  opacity: 0.8;
 }
