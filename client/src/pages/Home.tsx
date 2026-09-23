@@ -147,9 +147,9 @@ const demoFavourites: Favourite[] = [
 
 function domainIcon(url: string) {
   try {
-    return `https://www.google.com/s2/favicons?domain=${new URL(
-      url
-    ).hostname}&sz=128`;
+    return `https://www.google.com/s2/favicons?domain=${
+      new URL(url).hostname
+    }&sz=128`;
   } catch {
     return null;
   }
@@ -185,9 +185,7 @@ export default function Home() {
   const [dialog, setDialog] = useState<"add" | "edit" | null>(null);
   const [editing, setEditing] = useState<Favourite | null>(null);
 
-  const [actionMenuItem, setActionMenuItem] = useState<Favourite | null>(
-    null
-  );
+  const [actionMenuItem, setActionMenuItem] = useState<Favourite | null>(null);
 
   const [draft, setDraft] = useState<FavouriteDraft>({
     name: "",
@@ -229,18 +227,13 @@ export default function Home() {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") return "dark";
 
-    return (
-      (localStorage.getItem("fh-theme") as Theme) || "dark"
-    );
+    return (localStorage.getItem("fh-theme") as Theme) || "dark";
   });
 
   const [engine, setEngine] = useState<SearchEngine>(() => {
     if (typeof window === "undefined") return "duckduckgo";
 
-    return (
-      (localStorage.getItem("fh-engine") as SearchEngine) ||
-      "duckduckgo"
-    );
+    return (localStorage.getItem("fh-engine") as SearchEngine) || "duckduckgo";
   });
 
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
@@ -331,10 +324,7 @@ export default function Home() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (
-        event.key === "/" &&
-        document.activeElement?.tagName !== "INPUT"
-      ) {
+      if (event.key === "/" && document.activeElement?.tagName !== "INPUT") {
         event.preventDefault();
         searchRef.current?.focus();
       }
@@ -356,8 +346,7 @@ export default function Home() {
     const filtered = favourites.filter(item => {
       const search = query.trim().toLowerCase();
 
-      const matchesCategory =
-        category === "All" || item.category === category;
+      const matchesCategory = category === "All" || item.category === category;
 
       if (!search) {
         return matchesCategory;
@@ -367,8 +356,7 @@ export default function Home() {
       const url = item.url?.toLowerCase() ?? "";
       const itemCategory = item.category?.toLowerCase() ?? "";
 
-      const matchesNameOrUrl =
-        name.includes(search) || url.includes(search);
+      const matchesNameOrUrl = name.includes(search) || url.includes(search);
 
       const categoryWords = itemCategory.split(/[^a-z0-9]+/);
 
@@ -376,10 +364,7 @@ export default function Home() {
         word.startsWith(search)
       );
 
-      return (
-        matchesCategory &&
-        (matchesNameOrUrl || matchesCategoryName)
-      );
+      return matchesCategory && (matchesNameOrUrl || matchesCategoryName);
     });
 
     return [...filtered].sort((a, b) => {
@@ -414,9 +399,7 @@ export default function Home() {
       "All",
       ...Array.from(
         new Set(
-          favourites
-            .map(item => item.category)
-            .filter(Boolean) as string[]
+          favourites.map(item => item.category).filter(Boolean) as string[]
         )
       ),
     ],
@@ -430,18 +413,15 @@ export default function Home() {
       );
     }
 
-    const { error: authError } =
-      await supabase.auth.signInWithOAuth({
-        provider: "github",
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
 
     if (authError) {
-      setError(
-        "GitHub sign-in could not start. Please try again."
-      );
+      setError("GitHub sign-in could not start. Please try again.");
     }
   };
 
@@ -508,10 +488,7 @@ export default function Home() {
       .eq("id", item.id);
 
     if (error) {
-      console.error(
-        "Could not track favourite visit:",
-        error
-      );
+      console.error("Could not track favourite visit:", error);
     }
   };
 
@@ -554,9 +531,7 @@ export default function Home() {
 
       setFavourites(items =>
         editing
-          ? items.map(item =>
-              item.id === editing.id ? local : item
-            )
+          ? items.map(item => (item.id === editing.id ? local : item))
           : [...items, local]
       );
 
@@ -574,39 +549,23 @@ export default function Home() {
 
       const updated = {
         ...editing,
-        ...localFields(
-          name,
-          url,
-          icon,
-          draft.category
-        ),
+        ...localFields(name, url, icon, draft.category),
       } as Favourite;
 
       setFavourites(items =>
-        items.map(item =>
-          item.id === editing.id ? updated : item
-        )
+        items.map(item => (item.id === editing.id ? updated : item))
       );
 
       setDialog(null);
 
       const { error: updateError } = await supabase
         .from("favourites")
-        .update(
-          localFields(
-            name,
-            url,
-            icon,
-            draft.category
-          )
-        )
+        .update(localFields(name, url, icon, draft.category))
         .eq("id", editing.id);
 
       if (updateError) {
         setFavourites(previous);
-        setError(
-          "We could not save that edit. Please try again."
-        );
+        setError("We could not save that edit. Please try again.");
       }
     } else {
       const optimistic: Favourite = {
@@ -640,18 +599,12 @@ export default function Home() {
         .single();
 
       if (insertError) {
-        setFavourites(items =>
-          items.filter(item => item.id !== optimistic.id)
-        );
+        setFavourites(items => items.filter(item => item.id !== optimistic.id));
 
-        setError(
-          "We could not add that favourite. Please try again."
-        );
+        setError("We could not add that favourite. Please try again.");
       } else {
         setFavourites(items =>
-          items.map(item =>
-            item.id === optimistic.id ? data : item
-          )
+          items.map(item => (item.id === optimistic.id ? data : item))
         );
       }
     }
@@ -660,19 +613,13 @@ export default function Home() {
   const removeFavourite = async (item: Favourite) => {
     setActionMenuItem(null);
 
-    if (
-      !window.confirm(
-        `Remove ${item.name} from your favourites?`
-      )
-    ) {
+    if (!window.confirm(`Remove ${item.name} from your favourites?`)) {
       return;
     }
 
     const previous = favourites;
 
-    setFavourites(items =>
-      items.filter(entry => entry.id !== item.id)
-    );
+    setFavourites(items => items.filter(entry => entry.id !== item.id));
 
     if (supabase && !item.id.startsWith("temp-")) {
       const { error: deleteError } = await supabase
@@ -693,16 +640,13 @@ export default function Home() {
     if (!query.trim()) return;
 
     const selected =
-      SEARCH_ENGINES.find(item => item.id === engine) ??
-      SEARCH_ENGINES[0];
+      SEARCH_ENGINES.find(item => item.id === engine) ?? SEARCH_ENGINES[0];
 
     window.location.href =
-      selected.searchUrl +
-      encodeURIComponent(query.trim());
+      selected.searchUrl + encodeURIComponent(query.trim());
   };
 
-  const isSignedOut =
-    isSupabaseConfigured && !session;
+  const isSignedOut = isSupabaseConfigured && !session;
 
   return (
     <div className="app-shell">
@@ -715,27 +659,15 @@ export default function Home() {
           <button
             type="button"
             className="theme-toggle"
-            onClick={() =>
-              setTheme(
-                theme === "dark" ? "light" : "dark"
-              )
-            }
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             aria-label={
-              theme === "dark"
-                ? "Switch to light mode"
-                : "Switch to dark mode"
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
             }
             title={
-              theme === "dark"
-                ? "Switch to light mode"
-                : "Switch to dark mode"
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
             }
           >
-            {theme === "dark" ? (
-              <Sun size={16} />
-            ) : (
-              <Moon size={16} />
-            )}
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </button>
 
           {isSupabaseConfigured ? (
@@ -745,8 +677,7 @@ export default function Home() {
                   className="avatar"
                   title={
                     session.user.user_metadata?.user_name ||
-                    session.user.user_metadata
-                      ?.preferred_username ||
+                    session.user.user_metadata?.preferred_username ||
                     session.user.email ||
                     "GitHub user"
                   }
@@ -758,8 +689,7 @@ export default function Home() {
                     }
                     alt={
                       session.user.user_metadata?.user_name ||
-                      session.user.user_metadata
-                        ?.preferred_username ||
+                      session.user.user_metadata?.preferred_username ||
                       "GitHub avatar"
                     }
                   />
@@ -768,8 +698,7 @@ export default function Home() {
                 <span className="username">
                   @
                   {session.user.user_metadata?.user_name ||
-                    session.user.user_metadata
-                      ?.preferred_username ||
+                    session.user.user_metadata?.preferred_username ||
                     "user"}
                 </span>
 
@@ -782,30 +711,22 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <button
-                className="button secondary"
-                onClick={signIn}
-              >
+              <button className="button secondary" onClick={signIn}>
                 <LogIn size={16} /> Sign in with Github
               </button>
             )
           ) : (
-            <span className="preview-pill">
-              Preview mode
-            </span>
+            <span className="preview-pill">Preview mode</span>
           )}
         </div>
       </header>
 
       <main className="main-content">
         <section className="hero">
-          <p className="eyebrow">
-            YOUR PERSONAL START PAGE
-          </p>
+          <p className="eyebrow">YOUR PERSONAL START PAGE</p>
 
           <p className="hero-copy">
-            A quiet place for the sites you return to every
-            day.
+            A quiet place for the sites you return to every day.
           </p>
         </section>
 
@@ -840,14 +761,11 @@ export default function Home() {
             <h2>Your favourites, everywhere.</h2>
 
             <p>
-              Sign in with Github to sync your personal start
-              page across every device.
+              Sign in with Github to sync your personal start page across every
+              device.
             </p>
 
-            <button
-              className="button primary"
-              onClick={signIn}
-            >
+            <button className="button primary" onClick={signIn}>
               <LogIn size={16} /> Continue with Github
             </button>
           </section>
@@ -856,15 +774,11 @@ export default function Home() {
             <section className="section-head">
               <div>
                 <p className="eyebrow">
-                  Your collection (
-                  <span>{favourites.length}</span>)
+                  Your collection (<span>{favourites.length}</span>)
                 </p>
               </div>
 
-              <button
-                className="button primary"
-                onClick={openAdd}
-              >
+              <button className="button primary" onClick={openAdd}>
                 <Plus size={17} /> New
               </button>
             </section>
@@ -875,11 +789,7 @@ export default function Home() {
                   {categories.map(item => (
                     <button
                       key={item}
-                      className={
-                        category === item
-                          ? "filter active"
-                          : "filter"
-                      }
+                      className={category === item ? "filter active" : "filter"}
                       onClick={() => setCategory(item)}
                     >
                       {item}
@@ -888,25 +798,18 @@ export default function Home() {
                 </div>
               </div>
 
-              <div
-                className={`sort-menu ${
-                  sortMenuOpen ? "open" : ""
-                }`}
-              >
+              <div className={`sort-menu ${sortMenuOpen ? "open" : ""}`}>
                 <button
                   type="button"
                   className="sort-trigger"
-                  onClick={() =>
-                    setSortMenuOpen(open => !open)
-                  }
+                  onClick={() => setSortMenuOpen(open => !open)}
                   aria-label="Sort favourites"
                   aria-expanded={sortMenuOpen}
                 >
                   {(() => {
                     const selected =
-                      sortOptions.find(
-                        option => option.value === sort
-                      ) ?? sortOptions[0];
+                      sortOptions.find(option => option.value === sort) ??
+                      sortOptions[0];
 
                     const Icon = selected.icon;
 
@@ -927,11 +830,7 @@ export default function Home() {
                       <button
                         key={option.value}
                         type="button"
-                        className={
-                          sort === option.value
-                            ? "active"
-                            : ""
-                        }
+                        className={sort === option.value ? "active" : ""}
                         onClick={() => {
                           setSort(option.value);
                           setSortMenuOpen(false);
@@ -949,21 +848,16 @@ export default function Home() {
             {loading ? (
               <div className="skeleton-grid">
                 {[1, 2, 3, 4, 5].map(item => (
-                  <div
-                    className="skeleton-card"
-                    key={item}
-                  >
-                    <div className="skeleton-card-top">
-                      <div className="skeleton-icon" />
+                  <div className="skeleton-card" key={item}>
+                    <div className="skeleton-icon" />
 
-                      <div className="skeleton-name" />
+                    <div className="skeleton-card-body">
+                      <div className="skeleton-card-texts">
+                        <div className="skeleton-name" />
+                        <div className="skeleton-category" />
+                      </div>
 
                       <div className="skeleton-menu" />
-                    </div>
-
-                    <div className="skeleton-card-bottom">
-                      <div className="skeleton-category" />
-                      <div className="skeleton-arrow" />
                     </div>
                   </div>
                 ))}
@@ -971,106 +865,84 @@ export default function Home() {
             ) : visible.length ? (
               <div className="favourite-grid">
                 {visible.map(item => (
-                  <article
-                    key={item.id}
-                    className="favourite-card"
-                  >
-                    <div className="favourite-card-top">
-                      <a
-                        className="favourite-main"
-                        href={item.url}
-                        target={
-                          newTab ? "_blank" : undefined
-                        }
-                        rel={
-                          newTab
-                            ? "noreferrer"
-                            : undefined
-                        }
-                        onClick={async event => {
-                          if (!newTab) {
-                            event.preventDefault();
+                  <article key={item.id} className="favourite-card">
+                    <div className="favicon-wrap">
+                      <img
+                        src={item.icon || domainIcon(item.url) || ""}
+                        alt=""
+                        onError={e => {
+                          e.currentTarget.style.display = "none";
 
-                            await trackVisit(item);
-
-                            window.location.href =
-                              item.url;
-                          } else {
-                            void trackVisit(item);
-                          }
+                          e.currentTarget.nextElementSibling?.classList.remove(
+                            "hidden"
+                          );
                         }}
-                      >
-                        <div className="favicon-wrap">
-                          <img
-                            src={
-                              item.icon ||
-                              domainIcon(item.url) ||
-                              ""
+                      />
+
+                      <span className="favicon-fallback hidden">
+                        {initials(item.name)}
+                      </span>
+                    </div>
+
+                    <div className="favourite-card-body">
+                      <div className="favourite-card-texts">
+                        <a
+                          className="favourite-name"
+                          href={item.url}
+                          target={newTab ? "_blank" : undefined}
+                          rel={newTab ? "noreferrer" : undefined}
+                          onClick={async event => {
+                            if (!newTab) {
+                              event.preventDefault();
+
+                              await trackVisit(item);
+
+                              window.location.href = item.url;
+                            } else {
+                              void trackVisit(item);
                             }
-                            alt=""
-                            onError={e => {
-                              e.currentTarget.style.display =
-                                "none";
+                          }}
+                        >
+                          <h3>{item.name}</h3>
+                        </a>
 
-                              e.currentTarget.nextElementSibling?.classList.remove(
-                                "hidden"
-                              );
-                            }}
-                          />
+                        <a
+                          className="favourite-category"
+                          href={item.url}
+                          target={newTab ? "_blank" : undefined}
+                          rel={newTab ? "noreferrer" : undefined}
+                          onClick={async event => {
+                            if (!newTab) {
+                              event.preventDefault();
 
-                          <span className="favicon-fallback hidden">
-                            {initials(item.name)}
-                          </span>
-                        </div>
+                              await trackVisit(item);
 
-                        <h3>{item.name}</h3>
-                      </a>
+                              window.location.href = item.url;
+                            } else {
+                              void trackVisit(item);
+                            }
+                          }}
+                        >
+                          <span>{item.category || "Uncategorized"}</span>
 
+                          {/* <ArrowUpRight
+                        className="arrow"
+                        size={16}
+                      /> */}
+                        </a>
+                      </div>
+
+                      {/* 3 dots */}
                       <button
                         type="button"
                         className="more-button"
                         aria-label={`Options for ${item.name}`}
                         title="More options"
-                        onClick={() =>
-                          setActionMenuItem(item)
-                        }
+                        onClick={() => setActionMenuItem(item)}
                       >
                         <MoreVertical size={17} />
                       </button>
                     </div>
-
-                    <a
-                      className="favourite-bottom"
-                      href={item.url}
-                      target={
-                        newTab ? "_blank" : undefined
-                      }
-                      rel={
-                        newTab ? "noreferrer" : undefined
-                      }
-                      onClick={async event => {
-                        if (!newTab) {
-                          event.preventDefault();
-
-                          await trackVisit(item);
-
-                          window.location.href =
-                            item.url;
-                        } else {
-                          void trackVisit(item);
-                        }
-                      }}
-                    >
-                      <span>
-                        {item.category ||
-                          "Uncategorized"}
-                      </span>
-
-                      {/* <ArrowUpRight
-                        className="arrow"
-                        size={16}
-                      /> */}
-                    </a>
                   </article>
                 ))}
               </div>
@@ -1093,10 +965,7 @@ export default function Home() {
                 </p>
 
                 {!query && category === "All" && (
-                  <button
-                    className="button secondary"
-                    onClick={openAdd}
-                  >
+                  <button className="button secondary" onClick={openAdd}>
                     <Plus size={16} /> Add favourite
                   </button>
                 )}
@@ -1107,17 +976,12 @@ export default function Home() {
 
         <div className="search-fade" />
 
-        <form
-          className="search-wrap"
-          onSubmit={submitSearch}
-        >
+        <form className="search-wrap" onSubmit={submitSearch}>
           <div className="search-engine-picker">
             <button
               type="button"
               className="search-engine-trigger"
-              onClick={() =>
-                setSearchMenuOpen(open => !open)
-              }
+              onClick={() => setSearchMenuOpen(open => !open)}
               aria-label={`Search engine: ${selectedEngine.name}`}
               aria-expanded={searchMenuOpen}
             >
@@ -1127,9 +991,7 @@ export default function Home() {
                 className="search-engine-icon"
               />
 
-              <span className="search-engine-name">
-                {selectedEngine.name}
-              </span>
+              <span className="search-engine-name">{selectedEngine.name}</span>
             </button>
 
             {searchMenuOpen && (
@@ -1149,9 +1011,7 @@ export default function Home() {
                     }}
                   >
                     <img
-                      src={engineIcon(
-                        searchEngine.domain
-                      )}
+                      src={engineIcon(searchEngine.domain)}
                       alt=""
                       className="search-engine-icon"
                     />
@@ -1173,9 +1033,7 @@ export default function Home() {
 
           <kbd>/</kbd>
 
-          <button type="submit">
-            Search
-          </button>
+          <button type="submit">Search</button>
         </form>
       </main>
 
@@ -1190,15 +1048,11 @@ export default function Home() {
         >
           <div
             className="action-modal"
-            onMouseDown={event =>
-              event.stopPropagation()
-            }
+            onMouseDown={event => event.stopPropagation()}
           >
             <div className="action-modal-heading">
               <div>
-                <span className="action-modal-kicker">
-                  Favourite
-                </span>
+                <span className="action-modal-kicker">Favourite</span>
 
                 <h3>{actionMenuItem.name}</h3>
               </div>
@@ -1206,9 +1060,7 @@ export default function Home() {
               <button
                 type="button"
                 className="icon-button"
-                onClick={() =>
-                  setActionMenuItem(null)
-                }
+                onClick={() => setActionMenuItem(null)}
                 aria-label="Close"
               >
                 <X size={16} />
@@ -1216,12 +1068,7 @@ export default function Home() {
             </div>
 
             <div className="action-modal-options">
-              <button
-                type="button"
-                onClick={() =>
-                  openEdit(actionMenuItem)
-                }
-              >
+              <button type="button" onClick={() => openEdit(actionMenuItem)}>
                 <Pencil size={16} />
                 <span>Edit</span>
               </button>
@@ -1229,9 +1076,7 @@ export default function Home() {
               <button
                 type="button"
                 className="danger-option"
-                onClick={() =>
-                  removeFavourite(actionMenuItem)
-                }
+                onClick={() => removeFavourite(actionMenuItem)}
               >
                 <Trash2 size={16} />
                 <span>Delete</span>
@@ -1246,35 +1091,18 @@ export default function Home() {
           ===================================================== */}
 
       {dialog && (
-        <div
-          className="modal-backdrop"
-          onMouseDown={() => setDialog(null)}
-        >
-          <div
-            className="modal"
-            onMouseDown={e =>
-              e.stopPropagation()
-            }
-          >
+        <div className="modal-backdrop" onMouseDown={() => setDialog(null)}>
+          <div className="modal" onMouseDown={e => e.stopPropagation()}>
             <div className="modal-heading">
               <div>
                 <p className="section-kicker">
-                  {editing
-                    ? "Refine your shortcut"
-                    : "Add to your collection"}
+                  {editing ? "Refine your shortcut" : "Add to your collection"}
                 </p>
 
-                <h2>
-                  {editing
-                    ? "Edit favourite"
-                    : "New favourite"}
-                </h2>
+                <h2>{editing ? "Edit favourite" : "New favourite"}</h2>
               </div>
 
-              <button
-                className="icon-button"
-                onClick={() => setDialog(null)}
-              >
+              <button className="icon-button" onClick={() => setDialog(null)}>
                 <X size={18} />
               </button>
             </div>
@@ -1283,12 +1111,7 @@ export default function Home() {
               <div className="alert error">
                 <span>{modalError}</span>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setModalError("")
-                  }
-                >
+                <button type="button" onClick={() => setModalError("")}>
                   <X size={15} />
                 </button>
               </div>
@@ -1297,7 +1120,6 @@ export default function Home() {
             <form onSubmit={saveFavourite}>
               <label>
                 Name
-
                 <input
                   autoFocus
                   value={draft.name}
@@ -1313,7 +1135,6 @@ export default function Home() {
 
               <label>
                 URL
-
                 <input
                   value={draft.url}
                   onChange={e =>
@@ -1325,10 +1146,7 @@ export default function Home() {
                   onBlur={() => {
                     const url = draft.url.trim();
 
-                    if (
-                      url &&
-                      !/^https?:\/\//i.test(url)
-                    ) {
+                    if (url && !/^https?:\/\//i.test(url)) {
                       setDraft({
                         ...draft,
                         url: `https://${url}`,
@@ -1341,14 +1159,11 @@ export default function Home() {
 
               <label>
                 Category
-
                 <div className="category-pills">
                   <button
                     type="button"
                     className={`category-pill ${
-                      !draft.category
-                        ? "active"
-                        : ""
+                      !draft.category ? "active" : ""
                     }`}
                     onClick={() =>
                       setDraft({
@@ -1365,9 +1180,7 @@ export default function Home() {
                       key={option}
                       type="button"
                       className={`category-pill ${
-                        draft.category === option
-                          ? "active"
-                          : ""
+                        draft.category === option ? "active" : ""
                       }`}
                       onClick={() =>
                         setDraft({
@@ -1383,11 +1196,7 @@ export default function Home() {
               </label>
 
               <label>
-                Custom icon URL{" "}
-                <span className="optional">
-                  optional
-                </span>
-
+                Custom icon URL <span className="optional">optional</span>
                 <input
                   value={draft.icon || ""}
                   onChange={e =>
@@ -1404,20 +1213,13 @@ export default function Home() {
                 <button
                   type="button"
                   className="button secondary"
-                  onClick={() =>
-                    setDialog(null)
-                  }
+                  onClick={() => setDialog(null)}
                 >
                   Cancel
                 </button>
 
-                <button
-                  type="submit"
-                  className="button primary"
-                >
-                  {editing
-                    ? "Save changes"
-                    : "Add favourite"}
+                <button type="submit" className="button primary">
+                  {editing ? "Save changes" : "Add favourite"}
                 </button>
               </div>
             </form>
