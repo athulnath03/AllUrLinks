@@ -10,8 +10,6 @@ import {
   Moon,
   Pencil,
   Plus,
-  Search,
-  Settings2,
   Sparkles,
   Sun,
   Trash2,

@@ -69,21 +69,7 @@ button {
   font-weight: 750;
   letter-spacing: -0.02em;
 }
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
-  color: white;
-  background: var(--accent);
-}
-.brand-dot {
-  color: var(--muted);
-  font-weight: 500;
-}
-.top-actions,
-.account {
+.top-actions {
   display: flex;
   gap: 10px;
   align-items: center;
@@ -153,59 +139,6 @@ button {
 }
 .button.secondary:hover {
   border-color: var(--accent);
-}
-.settings-popover {
-  position: absolute;
-  top: 69px;
-  right: 28px;
-  z-index: 10;
-  width: 250px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 15px;
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  backdrop-filter: blur(18px);
-  box-shadow: var(--shadow);
-}
-.settings-heading {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 750;
-  font-size: 13px;
-  margin-bottom: 14px;
-}
-.settings-heading button {
-  background: none;
-  border: 0;
-  color: var(--muted);
-}
-.settings-popover label {
-  display: grid;
-  gap: 6px;
-  margin-top: 12px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 650;
-}
-.settings-popover select,
-.settings-popover input {
-  border: 1px solid var(--line);
-  background: var(--bg);
-  color: var(--ink);
-  border-radius: 8px;
-  padding: 8px;
-  font-size: 13px;
-}
-.switch-row {
-  display: flex !important;
-  grid-template-columns: 1fr auto !important;
-  align-items: center;
-  justify-content: space-between;
-}
-.switch-row input {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--accent);
 }
 .main-content {
   max-width: 1200px;
@@ -455,13 +388,6 @@ button {
   font-size: 12px;
   font-weight: 750;
 }
-.privacy-note {
-  text-align: center;
-  color: var(--muted);
-  font-size: 10px;
-  margin: 18px 0 0;
-  opacity: 0.7;
-}
 .alert {
   max-width: 700px;
   margin: 0 auto 20px;
@@ -670,30 +596,6 @@ button {
   .search-wrap kbd {
     display: none;
   }
-  .settings-popover {
-    right: 16px;
-  }
-}
-
-.search-engine {
-  flex: 0 0 auto;
-  max-width: 92px;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.search-engine:focus {
-  color: var(--accent);
-}
-
-.search-engine option {
-  color: #20221f;
-  background: #fbfbf8;
 }
 
 .search-engine-picker {
@@ -806,9 +708,34 @@ button {
   }
 }
 
+.account {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  box-shadow: 0 4px 14px rgba(27, 38, 31, 0.04);
+  transition: 0.18s ease;
+}
+
+.account:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: var(--surface);
+  box-shadow: 0 6px 18px rgba(27, 38, 31, 0.07);
+}
+
 .avatar {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
   overflow: hidden;
   padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .avatar img {
@@ -819,8 +746,31 @@ button {
 }
 
 .username {
-  font-size: 14px;
-  opacity: 0.8;
+  display: block;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.account .icon-button {
+  width: 27px;
+  height: 27px;
+  margin-left: 2px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--muted);
+  background: transparent;
+}
+
+.account .icon-button:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .category-pills {
