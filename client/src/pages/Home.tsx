@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { CATEGORY_OPTIONS, Favourite, FavouriteDraft } from "@/types/favourite";
+import { Favourite, FavouriteDraft } from "@/types/favourite";
 import {
   ArrowDownAZ,
   ArrowUpZA,
@@ -299,6 +299,72 @@ export default function Home() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (
+        event.key === "ArrowDown" ||
+        event.key === "ArrowUp" ||
+        event.key === "ArrowLeft" ||
+        event.key === "ArrowRight"
+      ) {
+        const cards = Array.from(
+          document.querySelectorAll<HTMLElement>("[data-favourite-card]")
+        );
+
+        if (!cards.length) return;
+
+        const current = document.activeElement as HTMLElement;
+        const currentIndex = cards.indexOf(current);
+
+        if (currentIndex === -1) {
+          cards[0]?.focus();
+          return;
+        }
+
+        event.preventDefault();
+
+        const currentRect = current.getBoundingClientRect();
+
+        let bestCard: HTMLElement | null = null;
+        let bestDistance = Infinity;
+
+        cards.forEach(card => {
+          if (card === current) return;
+
+          const rect = card.getBoundingClientRect();
+
+          const dx = rect.left - currentRect.left;
+          const dy = rect.top - currentRect.top;
+
+          let valid = false;
+
+          if (event.key === "ArrowRight") {
+            valid = dx > 0 && Math.abs(dy) < currentRect.height;
+          }
+
+          if (event.key === "ArrowLeft") {
+            valid = dx < 0 && Math.abs(dy) < currentRect.height;
+          }
+
+          if (event.key === "ArrowDown") {
+            valid = dy > 0 && Math.abs(dx) < currentRect.width;
+          }
+
+          if (event.key === "ArrowUp") {
+            valid = dy < 0 && Math.abs(dx) < currentRect.width;
+          }
+
+          if (valid) {
+            const distance = Math.hypot(dx, dy);
+
+            if (distance < bestDistance) {
+              bestDistance = distance;
+              bestCard = card;
+            }
+          }
+        });
+
+        bestCard?.focus();
+      }
+
       if (event.key === "/" && document.activeElement?.tagName !== "INPUT") {
         event.preventDefault();
         searchRef.current?.focus();
@@ -363,17 +429,14 @@ export default function Home() {
     });
   }, [favourites, category, query, sort]);
 
-  const categories = useMemo(
-    () => [
-      "All",
-      ...Array.from(
-        new Set(
-          favourites.map(item => item.category).filter(Boolean) as string[]
-        )
-      ),
-    ],
-    [favourites]
-  );
+  const categories = useMemo(() => {
+    const customCategories = favourites
+      .map(item => item.category)
+      .filter((category): category is string => Boolean(category))
+      .sort((a, b) => a.localeCompare(b));
+
+    return ["All", ...Array.from(new Set(customCategories))];
+  }, [favourites]);
 
   const signIn = async () => {
     if (!supabase) {
@@ -459,13 +522,28 @@ export default function Home() {
     }
   };
 
+  function normalizeCategory(value: string) {
+    return value
+      .trim()
+      .replace(/\s+/g, " ")
+      .replace(/\b\w/g, character => character.toUpperCase());
+  }
+
   const saveFavourite = async (event: FormEvent) => {
     event.preventDefault();
 
     setError("");
 
     const name = draft.name.trim();
-    const url = normalizeUrl(draft.url.trim());
+    const url = normalizeUrl(draft.url);
+    const category = draft.category?.trim()
+      ? normalizeCategory(draft.category)
+      : null;
+
+    if (!name || !url) {
+      setError("Please enter a name and URL.");
+      return;
+    }
 
     try {
       new URL(url);
@@ -488,7 +566,7 @@ export default function Home() {
         name,
         url,
         icon,
-        category: draft.category || null,
+        category: category,
         position: editing?.position ?? favourites.length,
         visit_count: editing?.visit_count ?? 0,
         last_visited_at: editing?.last_visited_at ?? null,
@@ -516,7 +594,7 @@ export default function Home() {
 
       const updated = {
         ...editing,
-        ...localFields(name, url, icon, draft.category),
+        ...localFields(name, url, icon, category),
       } as Favourite;
 
       setFavourites(items =>
@@ -527,7 +605,7 @@ export default function Home() {
 
       const { error: updateError } = await supabase
         .from("favourites")
-        .update(localFields(name, url, icon, draft.category))
+        .update(localFields(name, url, icon, category))
         .eq("id", editing.id);
 
       if (updateError) {
@@ -541,7 +619,7 @@ export default function Home() {
         name,
         url,
         icon,
-        category: draft.category || null,
+        category: category,
         position: favourites.length,
         visit_count: 0,
         last_visited_at: null,
@@ -559,7 +637,7 @@ export default function Home() {
           name,
           url,
           icon,
-          category: draft.category || null,
+          category: category,
           position: optimistic.position,
         })
         .select()
@@ -580,6 +658,17 @@ export default function Home() {
     setActionMenuItem(null);
 
     if (!window.confirm(`Remove ${item.name} from your favourites?`)) return;
+
+    if (category === item.category) {
+      const remainingInCategory = favourites.some(
+        favourite =>
+          favourite.id !== item.id && favourite.category === item.category
+      );
+
+      if (!remainingInCategory) {
+        setCategory("All");
+      }
+    }
 
     const previous = favourites;
 
@@ -776,21 +865,23 @@ export default function Home() {
 
             {/* FILTERS */}
             <div className="mb-[18px] flex w-full min-w-0 items-center justify-between gap-2">
-              <div className="h-9 min-w-0 rounded-[12px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_70%,transparent)] p-1">
-                <div className="flex h-full min-w-0 items-center gap-1.5 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
-                  {categories.map(item => (
-                    <button
-                      key={item}
-                      className={`flex-none whitespace-nowrap rounded-[8px] border border-transparent px-[11px] py-1.5 text-[12px] font-[650] text-[var(--muted)] transition-[background,color,border-color] duration-[150ms] ease-[ease] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] ${
-                        category === item
-                          ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                          : ""
-                      }`}
-                      onClick={() => setCategory(item)}
-                    >
-                      {item}
-                    </button>
-                  ))}
+              <div className="flex w-full min-w-0 items-center justify-between gap-2">
+                <div className="h-9 min-w-0 rounded-[12px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_70%,transparent)] p-1">
+                  <div className="flex h-full min-w-0 items-center gap-1.5 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
+                    {categories.map(item => (
+                      <button
+                        key={item}
+                        className={`flex-none whitespace-nowrap rounded-[11px] border border-transparent px-[11px] py-1.5 text-[12px] font-[650] text-[var(--muted)] transition-[background,color,border-color] duration-[150ms] ease-[ease] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] ${
+                          category === item
+                            ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                            : ""
+                        }`}
+                        onClick={() => setCategory(item)}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -824,11 +915,11 @@ export default function Home() {
                 </button>
 
                 <div
-                  className={`absolute right-[calc(100%+8px)] top-0 z-[30] flex w-max max-w-[calc(100vw-32px)] items-center gap-1 overflow-hidden whitespace-nowrap rounded-[10px] border border-[var(--line)] bg-[var(--surface)] p-1 shadow-[0_12px_30px_rgba(0,0,0,0.12)] transition-[transform,opacity] duration-[220ms] [transform-origin:right_center] ${
+                  className={`absolute right-0 top-[calc(100%+8px)] z-[30] w-[130px] rounded-[11px] border border-[var(--line)] bg-[var(--surface)] p-1 shadow-[0_12px_30px_rgba(0,0,0,0.12)] transition-[transform,opacity] duration-[150ms] [transform-origin:top_right] ${
                     sortMenuOpen
-                      ? "pointer-events-auto translate-x-0 scale-x-100 opacity-100"
-                      : "pointer-events-none translate-x-[10px] scale-x-[0.01] opacity-0"
-                  } max-[520px]:right-0 max-[520px]:top-[calc(100%+8px)] max-[520px]:block max-[520px]:min-w-[145px] max-[520px]:max-w-none max-[520px]:rounded-[12px] max-[520px]:p-1.5 max-[520px]:[transform-origin:top_right]`}
+                      ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+                      : "pointer-events-none -translate-y-1 scale-95 opacity-0"
+                  }`}
                 >
                   {sortOptions.map(option => {
                     const Icon = option.icon;
@@ -837,7 +928,7 @@ export default function Home() {
                       <button
                         key={option.value}
                         type="button"
-                        className={`inline-flex h-7 min-w-[34px] flex-none items-center justify-center gap-[7px] rounded-[7px] border-0 bg-transparent px-[9px] text-[11px] text-[var(--ink)] transition-[background,color] duration-[150ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] max-[520px]:flex max-[520px]:h-auto max-[520px]:w-full max-[520px]:justify-start max-[520px]:gap-[9px] max-[520px]:rounded-lg max-[520px]:px-[10px] max-[520px]:py-[9px] max-[520px]:text-[12px] ${
+                        className={`inline-flex h-9 w-full min-w-[34px] flex-none items-center justify-start gap-[7px] rounded-[7px] border-0 bg-transparent px-[9px] text-[11px] text-[var(--ink)] transition-[background,color] duration-[150ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] max-[520px]:flex max-[520px]:h-auto max-[520px]:w-full max-[520px]:justify-start max-[520px]:gap-[9px] max-[520px]:rounded-lg max-[520px]:px-[10px] max-[520px]:py-[9px] max-[520px]:text-[12px] ${
                           sort === option.value
                             ? "bg-[var(--accent-soft)] text-[var(--accent)]"
                             : ""
@@ -856,7 +947,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* CONTENT */}
+            {/* CONTENT GRID */}
             {loading ? (
               <div className="grid grid-cols-[repeat(5,minmax(0,1fr))] gap-3 max-[800px]:grid-cols-[repeat(2,minmax(0,1fr))] max-[520px]:gap-[9px]">
                 {[1, 2, 3, 4, 5].map(item => (
@@ -878,11 +969,38 @@ export default function Home() {
                 ))}
               </div>
             ) : visible.length ? (
-              <div className="mb-[100px] grid grid-cols-[repeat(5,minmax(0,1fr))] gap-3 max-[800px]:grid-cols-[repeat(2,minmax(0,1fr))] max-[520px]:gap-[9px]">
+              <div className="mb-[100px] grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3 max-[520px]:gap-[9px]">
                 {visible.map(item => (
                   <article
+                    data-favourite-card
                     key={item.id}
-                    className="flex gap-2 rounded-[14px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_90%,transparent)] p-[11px_12px] shadow-[0_4px_15px_rgba(25,35,29,0.025)] transition-[transform,border-color,box-shadow] duration-200 ease-in hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] hover:shadow-[var(--shadow)] max-[520px]:rounded-[13px] max-[520px]:p-[10px]"
+                    tabIndex={0}
+                    onClick={event => {
+                      // Don't open the link when clicking the options button
+                      if ((event.target as HTMLElement).closest("button"))
+                        return;
+
+                      void trackVisit(item);
+                      window.open(item.url, "_blank", "noopener,noreferrer");
+                    }}
+                    onKeyDown={event => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        void trackVisit(item);
+                        window.open(item.url, "_blank", "noopener,noreferrer");
+                      }
+
+                      if (event.key.toLowerCase() === "e") {
+                        event.preventDefault();
+                        openEdit(item);
+                      }
+
+                      if (event.key === "Delete") {
+                        event.preventDefault();
+                        void removeFavourite(item);
+                      }
+                    }}
+                    className="relative flex cursor-pointer gap-2 rounded-[14px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_90%,transparent)] p-[11px_12px] shadow-[0_4px_15px_rgba(25,35,29,0.025)] transition-[transform,border-color,box-shadow] duration-200 ease-in hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] hover:shadow-[var(--shadow)] focus:border-[var(--accent)] focus:outline-none focus:shadow-[0_0_0_3px_var(--accent-soft)] max-[520px]:rounded-[13px] max-[520px]:p-[10px]"
                   >
                     <div className="grid h-10 w-10 flex-none place-items-center rounded-[9px] bg-[var(--accent-soft)] max-[520px]:h-8 max-[520px]:w-8">
                       <img
@@ -905,56 +1023,64 @@ export default function Home() {
 
                     <div className="flex w-full items-center justify-between">
                       <div className="flex min-w-0 flex-col gap-1.5">
-                        <a
-                          className="flex min-w-0 flex-1 items-center gap-[9px] text-inherit no-underline max-[520px]:gap-[7px]"
-                          href={item.url}
-                          target={newTab ? "_blank" : undefined}
-                          rel={newTab ? "noreferrer" : undefined}
-                          onClick={async event => {
-                            if (!newTab) {
-                              event.preventDefault();
-                              await trackVisit(item);
-                              window.location.href = item.url;
-                            } else {
-                              void trackVisit(item);
-                            }
-                          }}
-                        >
-                          <h3 className="m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-bold tracking-[-0.02em] text-[var(--ink)] max-[520px]:text-[12px]">
-                            {item.name}
-                          </h3>
-                        </a>
+                        <h3 className="m-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-bold tracking-[-0.02em] text-[var(--ink)] max-[520px]:text-[12px]">
+                          {item.name}
+                        </h3>
 
-                        <a
-                          className="flex text-[10px] font-semibold text-[var(--muted)] no-underline max-[520px]:text-[9px]"
-                          href={item.url}
-                          target={newTab ? "_blank" : undefined}
-                          rel={newTab ? "noreferrer" : undefined}
-                          onClick={async event => {
-                            if (!newTab) {
-                              event.preventDefault();
-                              await trackVisit(item);
-                              window.location.href = item.url;
-                            } else {
-                              void trackVisit(item);
-                            }
-                          }}
-                        >
+                        <span className="flex text-[10px] font-semibold text-[var(--muted)] no-underline max-[520px]:text-[9px]">
                           <span className="overflow-hidden text-ellipsis whitespace-nowrap">
                             {item.category || "Uncategorized"}
                           </span>
-                        </a>
+                        </span>
                       </div>
 
-                      <button
-                        type="button"
-                        className="grid h-[27px] w-[27px] flex-none place-items-center rounded-[7px] border-0 bg-transparent p-0 text-[var(--muted)] opacity-[0.65] transition-[background,color,opacity] duration-[150ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] group-hover:opacity-100 max-[520px]:h-[25px] max-[520px]:w-[25px]"
-                        aria-label={`Options for ${item.name}`}
-                        title="More options"
-                        onClick={() => setActionMenuItem(item)}
-                      >
-                        <MoreVertical size={17} />
-                      </button>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className="grid h-[27px] w-[27px] flex-none place-items-center rounded-[7px] border-0 bg-transparent p-0 text-[var(--muted)] opacity-[0.65] transition-[background,color,opacity] duration-[150ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] group-hover:opacity-100 max-[520px]:h-[25px] max-[520px]:w-[25px]"
+                          aria-label={`Options for ${item.name}`}
+                          title="More options"
+                          onClick={event => {
+                            event.stopPropagation();
+                            setActionMenuItem(
+                              actionMenuItem?.id === item.id ? null : item
+                            );
+                          }}
+                        >
+                          <MoreVertical size={17} />
+                        </button>
+
+                        {actionMenuItem?.id === item.id && (
+                          <div
+                            className="absolute right-0 top-[34px] z-[50] w-[150px] rounded-[11px] border border-[var(--line)] bg-[var(--surface)] p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.12)] animate-[actionModalIn_150ms_ease]"
+                            onClick={event => event.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              className="flex w-full items-center gap-[9px] rounded-[7px] border-0 bg-transparent px-[9px] py-[8px] text-left text-[11px] font-[650] text-[var(--ink)] transition-[background,color] duration-[150ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+                              onClick={() => {
+                                openEdit(item);
+                                setActionMenuItem(null);
+                              }}
+                            >
+                              <Pencil size={14} />
+                              <span>Edit</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="flex w-full items-center gap-[9px] rounded-[7px] border-0 bg-transparent px-[9px] py-[8px] text-left text-[11px] font-[650] text-[var(--ink)] transition-[background,color] duration-[150ms] ease-in hover:bg-[#fae9e7] hover:text-[#b42318]"
+                              onClick={() => {
+                                void removeFavourite(item);
+                                setActionMenuItem(null);
+                              }}
+                            >
+                              <Trash2 size={14} />
+                              <span>Delete</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </article>
                 ))}
@@ -1070,60 +1196,6 @@ export default function Home() {
         </form>
       </main>
 
-      {/* ACTION MODAL */}
-      {actionMenuItem && (
-        <div
-          className="fixed inset-0 z-[25] grid place-items-center bg-[rgba(19,25,21,0.18)] p-[18px] backdrop-blur-[3px]"
-          onMouseDown={() => setActionMenuItem(null)}
-        >
-          <div
-            className="w-[min(100%,280px)] animate-[actionModalIn_150ms_ease] rounded-[15px] border border-[var(--line)] bg-[var(--surface)] p-[14px] shadow-[0_20px_55px_rgba(0,0,0,0.16)]"
-            onMouseDown={event => event.stopPropagation()}
-          >
-            <div className="mb-[10px] flex items-center justify-between gap-[10px]">
-              <div>
-                <span className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[var(--muted)]">
-                  Favourite
-                </span>
-
-                <h3 className="m-[2px_0_0] max-w-[190px] overflow-hidden text-ellipsis whitespace-nowrap text-[14px] font-bold text-[var(--ink)]">
-                  {actionMenuItem.name}
-                </h3>
-              </div>
-
-              <button
-                type="button"
-                className="grid h-[35px] w-[35px] place-items-center rounded-[30px] border border-[var(--line)] bg-transparent text-[var(--muted)] transition duration-[180ms] ease-in hover:-translate-y-px hover:bg-[var(--surface)] hover:text-[var(--ink)]"
-                onClick={() => setActionMenuItem(null)}
-                aria-label="Close"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="grid gap-[5px]">
-              <button
-                type="button"
-                className="flex w-full items-center gap-[10px] rounded-[9px] border-0 bg-transparent px-[11px] py-[10px] text-left text-[12px] font-[650] text-[var(--ink)] transition-[background,color] duration-[150ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-                onClick={() => openEdit(actionMenuItem)}
-              >
-                <Pencil size={16} />
-                <span>Edit</span>
-              </button>
-
-              <button
-                type="button"
-                className="flex w-full items-center gap-[10px] rounded-[9px] border-0 bg-transparent px-[11px] py-[10px] text-left text-[12px] font-[650] text-[var(--ink)] transition-[background,color] duration-[150ms] ease-in hover:bg-[#fae9e7] hover:text-[#b42318]"
-                onClick={() => removeFavourite(actionMenuItem)}
-              >
-                <Trash2 size={16} />
-                <span>Delete</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ADD / EDIT MODAL */}
       {dialog && (
         <div
@@ -1211,44 +1283,26 @@ export default function Home() {
 
               <label className="grid gap-1.5 text-[12px] font-bold text-[var(--muted)]">
                 Category
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className={`rounded-full border px-3 py-[7px] text-[13px] transition duration-[150ms] ease-in hover:border-[var(--accent)] ${
-                      !draft.category
-                        ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
-                        : "border-[var(--line)] bg-transparent text-[var(--ink)]"
-                    }`}
-                    onClick={() =>
-                      setDraft({
-                        ...draft,
-                        category: "",
-                      })
-                    }
-                  >
-                    No category
-                  </button>
-
-                  {CATEGORY_OPTIONS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      className={`rounded-full border px-3 py-[7px] text-[13px] transition duration-[150ms] ease-in hover:border-[var(--accent)] ${
-                        draft.category === option
-                          ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
-                          : "border-[var(--line)] bg-transparent text-[var(--ink)]"
-                      }`}
-                      onClick={() =>
-                        setDraft({
-                          ...draft,
-                          category: option,
-                        })
-                      }
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
+                <input
+                  list="category-suggestions"
+                  value={draft.category || ""}
+                  onChange={e =>
+                    setDraft({
+                      ...draft,
+                      category: e.target.value,
+                    })
+                  }
+                  placeholder="e.g. Google, Government, Research"
+                  maxLength={50}
+                  className="w-full rounded-[9px] border border-[var(--line)] bg-[var(--bg)] px-3 py-[11px] text-[13px] text-[var(--ink)] outline-none focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                />
+                <datalist id="category-suggestions">
+                  {categories
+                    .filter(item => item !== "All")
+                    .map(item => (
+                      <option key={item} value={item} />
+                    ))}
+                </datalist>
               </label>
 
               <label className="grid gap-1.5 text-[12px] font-bold text-[var(--muted)]">

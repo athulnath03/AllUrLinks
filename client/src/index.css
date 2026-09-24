@@ -37,15 +37,6 @@ html {
 body {
   min-width: 320px;
   margin: 0;
-
-  background:
-    radial-gradient(
-      circle at 50% -10%,
-      rgba(208, 228, 214, 0.42),
-      transparent 38%
-    ),
-    var(--bg);
-
   color: var(--ink);
 }
 
@@ -56,6 +47,7 @@ input {
 
 button {
   cursor: pointer;
+  font-size: 14px;
 }
 
 @keyframes shimmer {
