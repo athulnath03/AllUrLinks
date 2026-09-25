@@ -1,13 +1,98 @@
-project/
+favourites-home/
+│
+├── .gitignore
+├── .gitkeep
+├── .prettierignore
+├── .prettierrc
+├── .project-config.json
+├── components.json
+├── env.example
+├── filestr.txt
+├── package.json
+├── pnpm-lock.yaml
+├── postcss.config.mjs
+├── README.md
+├── supabase.sql
+├── template.json
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.ts
+│
+├── .manus-logs/
+│   ├── browserConsole.log
+│   ├── networkRequests.log
+│   └── sessionReplay.log
+│
 ├── client/
+│   ├── index.html
+│   │
 │   ├── public/
+│   │   ├── .gitkeep
+│   │   ├── favicon.svg
+│   │   └── __manus__/
+│   │       ├── debug-collector.js
+│   │       └── version.json
+│   │
 │   └── src/
+│       ├── App.tsx
+│       ├── const.ts
+│       ├── index.css
+│       ├── main.tsx
+│       │
 │       ├── components/
+│       │   ├── ErrorBoundary.tsx
+│       │   ├── ManusDialog.tsx
+│       │   ├── Map.tsx
+│       │   │
+│       │   ├── common/
+│       │   │   └── ThemeSelector.tsx
+│       │   │
+│       │   └── layout/
+│       │       ├── AddFavouriteModal.tsx
+│       │       ├── Alerts.tsx
+│       │       ├── CollectionHeader.tsx
+│       │       ├── FavouriteGrid.tsx
+│       │       ├── FiltersBar.tsx
+│       │       ├── Header.tsx
+│       │       └── SearchBar.tsx
+│       │
 │       ├── contexts/
+│       │   └── ThemeContext.tsx
+│       │
 │       ├── hooks/
+│       │   ├── useComposition.ts
+│       │   ├── useMobile.tsx
+│       │   └── usePersistFn.ts
+│       │
 │       ├── lib/
+│       │   ├── supabase.ts
+│       │   └── utils.ts
+│       │
 │       ├── pages/
+│       │   ├── Home.tsx
+│       │   └── NotFound.tsx
+│       │
 │       └── types/
+│           └── favourite.ts
+│
+├── dist/
+│   ├── index.js
+│   └── public/
+│       ├── .gitkeep
+│       ├── favicon.svg
+│       ├── index.html
+│       ├── assets/
+│       │   ├── index-Diwl3mNS.js
+│       │   └── index-mH-gnzeh.css
+│       └── __manus__/
+│           ├── debug-collector.js
+│           └── version.json
+│
 ├── patches/
+│   └── wouter@3.7.1.patch
+│
 ├── server/
+│   └── index.ts
+│
 └── shared/
+    └── const.ts

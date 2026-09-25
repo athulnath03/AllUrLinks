@@ -4,6 +4,7 @@ type Theme = "system" | "light" | "dark";
 
 interface ThemeContextType {
   theme: Theme;
+
   switchable: boolean;
 }
 
@@ -11,13 +12,17 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 interface ThemeProviderProps {
   children: React.ReactNode;
+
   theme?: Theme;
+
   switchable?: boolean;
 }
 
 export function ThemeProvider({
   children,
+
   theme = "dark",
+
   switchable = true,
 }: ThemeProviderProps) {
   return (
