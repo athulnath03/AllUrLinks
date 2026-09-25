@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { Favourite, FavouriteDraft } from "@/types/favourite";
 import {
@@ -12,6 +13,8 @@ import {
   LogIn,
   LogOut,
   Moon,
+  Monitor,
+  MoreVertical,
   Pencil,
   Plus,
   Sparkles,
@@ -19,7 +22,6 @@ import {
   TrendingUp,
   Trash2,
   X,
-  MoreVertical,
 } from "lucide-react";
 
 type Theme = "system" | "light" | "dark";
@@ -141,6 +143,71 @@ const demoFavourites: Favourite[] = [
     created_at: "2026-09-20T17:30:00.000Z",
     updated_at: "2026-09-20T17:30:00.000Z",
   },
+  {
+    id: "demo-6",
+    user_id: "demo",
+    name: "Google",
+    url: "https://google.com",
+    icon: null,
+    category: "Search",
+    position: 5,
+    visit_count: 32,
+    last_visited_at: "2026-09-23T11:45:00.000Z",
+    created_at: "2026-09-02T10:00:00.000Z",
+    updated_at: "2026-09-23T11:45:00.000Z",
+  },
+  {
+    id: "demo-7",
+    user_id: "demo",
+    name: "Reddit",
+    url: "https://reddit.com",
+    icon: null,
+    category: "Social",
+    position: 6,
+    visit_count: 14,
+    last_visited_at: "2026-09-22T21:10:00.000Z",
+    created_at: "2026-09-06T13:00:00.000Z",
+    updated_at: "2026-09-22T21:10:00.000Z",
+  },
+  {
+    id: "demo-8",
+    user_id: "demo",
+    name: "LinkedIn",
+    url: "https://linkedin.com",
+    icon: null,
+    category: "Work",
+    position: 7,
+    visit_count: 9,
+    last_visited_at: "2026-09-23T07:30:00.000Z",
+    created_at: "2026-09-08T15:00:00.000Z",
+    updated_at: "2026-09-23T07:30:00.000Z",
+  },
+  {
+    id: "demo-9",
+    user_id: "demo",
+    name: "Notion",
+    url: "https://notion.so",
+    icon: null,
+    category: "Productivity",
+    position: 8,
+    visit_count: 11,
+    last_visited_at: "2026-09-22T16:20:00.000Z",
+    created_at: "2026-09-12T12:00:00.000Z",
+    updated_at: "2026-09-22T16:20:00.000Z",
+  },
+  {
+    id: "demo-10",
+    user_id: "demo",
+    name: "ChatGPT",
+    url: "https://chatgpt.com",
+    icon: null,
+    category: "AI",
+    position: 9,
+    visit_count: 21,
+    last_visited_at: "2026-09-23T09:50:00.000Z",
+    created_at: "2026-09-18T14:00:00.000Z",
+    updated_at: "2026-09-23T09:50:00.000Z",
+  },
 ];
 
 function domainIcon(url: string) {
@@ -166,15 +233,24 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+const sortOptions = [
+  { value: "recent", label: "last added", icon: Clock3 },
+  { value: "visited", label: "last visited", icon: History },
+  { value: "popular", label: "Most used", icon: TrendingUp },
+  { value: "az", label: "A → Z", icon: ArrowDownAZ },
+  { value: "za", label: "Z → A", icon: ArrowUpZA },
+];
+
 export default function Home() {
   const [favourites, setFavourites] = useState<Favourite[]>(
     isSupabaseConfigured ? [] : demoFavourites
   );
 
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured);
   const [error, setError] = useState("");
   const [modalError, setModalError] = useState("");
+  const [fetchingName, setFetchingName] = useState(false);
   const [notice, setNotice] = useState("");
 
   const [query, setQuery] = useState("");
@@ -194,17 +270,9 @@ export default function Home() {
 
   const [sort, setSort] = useState("recent");
 
-  const sortOptions = [
-    { value: "recent", label: "last added", icon: Clock3 },
-    { value: "visited", label: "last visited", icon: History },
-    { value: "popular", label: "Most used", icon: TrendingUp },
-    { value: "az", label: "A → Z", icon: ArrowDownAZ },
-    { value: "za", label: "Z → A", icon: ArrowUpZA },
-  ];
-
   const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "dark";
-    return (localStorage.getItem("fh-theme") as Theme) || "dark";
+    if (typeof window === "undefined") return "system";
+    return (localStorage.getItem("fh-theme") as Theme) || "system";
   });
 
   const [engine, setEngine] = useState<SearchEngine>(() => {
@@ -224,6 +292,9 @@ export default function Home() {
   });
 
   const searchRef = useRef<HTMLInputElement>(null);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
+  const searchMenuRef = useRef<HTMLDivElement>(null);
 
   const loadFavourites = async () => {
     if (!supabase) return;
@@ -249,14 +320,23 @@ export default function Home() {
   useEffect(() => {
     const root = document.documentElement;
 
-    const resolved =
-      theme === "system"
-        ? window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light"
-        : theme;
+    if (theme === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-    root.classList.toggle("dark", resolved === "dark");
+      const applySystemTheme = () => {
+        root.classList.toggle("dark", mediaQuery.matches);
+      };
+
+      applySystemTheme();
+      mediaQuery.addEventListener("change", applySystemTheme);
+      localStorage.setItem("fh-theme", "system");
+
+      return () => {
+        mediaQuery.removeEventListener("change", applySystemTheme);
+      };
+    }
+
+    root.classList.toggle("dark", theme === "dark");
     localStorage.setItem("fh-theme", theme);
   }, [theme]);
 
@@ -299,11 +379,21 @@ export default function Home() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+
+      const isTyping =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable;
+
       if (
-        event.key === "ArrowDown" ||
-        event.key === "ArrowUp" ||
-        event.key === "ArrowLeft" ||
-        event.key === "ArrowRight"
+        !dialog &&
+        !isTyping &&
+        (event.key === "ArrowDown" ||
+          event.key === "ArrowUp" ||
+          event.key === "ArrowLeft" ||
+          event.key === "ArrowRight")
       ) {
         const cards = Array.from(
           document.querySelectorAll<HTMLElement>("[data-favourite-card]")
@@ -362,10 +452,13 @@ export default function Home() {
           }
         });
 
-        bestCard?.focus();
+        if (bestCard) {
+          (bestCard as HTMLElement).focus();
+        }
       }
 
-      if (event.key === "/" && document.activeElement?.tagName !== "INPUT") {
+      // "/" should also not interfere while typing in an input.
+      if (event.key === "/" && !isTyping) {
         event.preventDefault();
         searchRef.current?.focus();
       }
@@ -381,6 +474,36 @@ export default function Home() {
     window.addEventListener("keydown", onKey);
 
     return () => window.removeEventListener("keydown", onKey);
+  }, [dialog]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      // Close 3-dot action menu when clicking outside
+      if (actionMenuRef.current && !actionMenuRef.current.contains(target)) {
+        setActionMenuItem(null);
+      }
+
+      // Close sort menu when clicking outside
+      if (sortMenuRef.current && !sortMenuRef.current.contains(target)) {
+        setSortMenuOpen(false);
+      }
+
+      // close search engine menu when clicking outside
+      if (
+        searchMenuRef.current &&
+        !searchMenuRef.current.contains(event.target as Node)
+      ) {
+        setSearchMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
   }, []);
 
   const visible = useMemo(() => {
@@ -491,6 +614,42 @@ export default function Home() {
     setDialog("edit");
   };
 
+  const fetchSiteName = async (value: string) => {
+    const rawUrl = value.trim();
+
+    if (!rawUrl) return;
+
+    const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+
+    try {
+      new URL(url);
+    } catch {
+      return;
+    }
+
+    setFetchingName(true);
+
+    try {
+      const response = await fetch(
+        `/api/metadata?url=${encodeURIComponent(url)}`
+      );
+
+      const data = await response.json();
+
+      if (data.name) {
+        setDraft(current => ({
+          ...current,
+          url,
+          name: current.name.trim() ? current.name : data.name,
+        }));
+      }
+    } catch (error) {
+      console.error("Metadata request failed:", error);
+    } finally {
+      setFetchingName(false);
+    }
+  };
+
   const trackVisit = async (item: Favourite) => {
     const now = new Date().toISOString();
     const visitCount = (item.visit_count || 0) + 1;
@@ -533,6 +692,7 @@ export default function Home() {
     event.preventDefault();
 
     setError("");
+    setModalError("");
 
     const name = draft.name.trim();
     const url = normalizeUrl(draft.url);
@@ -540,8 +700,13 @@ export default function Home() {
       ? normalizeCategory(draft.category)
       : null;
 
-    if (!name || !url) {
-      setError("Please enter a name and URL.");
+    if (!name) {
+      setModalError("Give this favourite a name.");
+      return;
+    }
+
+    if (!url) {
+      setModalError("Please enter a URL.");
       return;
     }
 
@@ -551,10 +716,6 @@ export default function Home() {
       return setModalError(
         "Enter a valid website URL, such as https://github.com."
       );
-    }
-
-    if (!name) {
-      return setModalError("Give this favourite a name.");
     }
 
     const icon = draft.icon?.trim() || domainIcon(url);
@@ -613,6 +774,10 @@ export default function Home() {
         setError("We could not save that edit. Please try again.");
       }
     } else {
+      if (!session) {
+        setError("Please sign in before adding a favourite.");
+        return;
+      }
       const optimistic: Favourite = {
         id: `temp-${Date.now()}`,
         user_id: session.user.id,
@@ -710,20 +875,52 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-[10px]">
-          <button
-            type="button"
-            className="grid h-8 w-8 place-items-center rounded-[30px] border border-[var(--line)] bg-[var(--accent-soft)] text-[var(--accent)] transition duration-[180ms] ease-in hover:-translate-y-px hover:brightness-105"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label={
-              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-            }
-            title={
-              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-            }
-          >
-            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
+          {/* Theme selector */}
+          <div className="flex shrink-0 items-center gap-0 rounded-[50px] border border-[var(--line)] bg-[var(--surface)] p-[3px]">
+            <button
+              type="button"
+              onClick={() => setTheme("light")}
+              aria-label="Light theme"
+              title="Light"
+              className={`grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[7px] transition ${
+                theme === "light"
+                  ? "bg-[var(--surface-2)] text-[var(--text)]"
+                  : "text-[var(--muted)] hover:text-[var(--text)]"
+              }`}
+            >
+              <Sun size={15} />
+            </button>
 
+            <button
+              type="button"
+              onClick={() => setTheme("system")}
+              aria-label="System theme"
+              title="System"
+              className={`grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[7px] transition ${
+                theme === "system"
+                  ? "bg-[var(--surface-2)] text-[var(--text)]"
+                  : "text-[var(--muted)] hover:text-[var(--text)]"
+              }`}
+            >
+              <Monitor size={15} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTheme("dark")}
+              aria-label="Dark theme"
+              title="Dark"
+              className={`grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[7px] transition ${
+                theme === "dark"
+                  ? "bg-[var(--surface-2)] text-[var(--text)]"
+                  : "text-[var(--muted)] hover:text-[var(--text)]"
+              }`}
+            >
+              <Moon size={15} />
+            </button>
+          </div>
+
+          {/* Account */}
           {isSupabaseConfigured ? (
             session ? (
               <div className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] py-1 pl-1 pr-[10px] shadow-[0_4px_14px_rgba(27,38,31,0.04)] transition duration-[180ms] ease-in hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] hover:bg-[var(--surface)] hover:shadow-[0_6px_18px_rgba(27,38,31,0.07)]">
@@ -887,6 +1084,7 @@ export default function Home() {
 
               {/* SORT */}
               <div
+                ref={sortMenuRef}
                 className={`relative flex-none ${sortMenuOpen ? "open" : ""}`}
               >
                 <button
@@ -1000,7 +1198,9 @@ export default function Home() {
                         void removeFavourite(item);
                       }
                     }}
-                    className="relative flex cursor-pointer gap-2 rounded-[14px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_90%,transparent)] p-[11px_12px] shadow-[0_4px_15px_rgba(25,35,29,0.025)] transition-[transform,border-color,box-shadow] duration-200 ease-in hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] hover:shadow-[var(--shadow)] focus:border-[var(--accent)] focus:outline-none focus:shadow-[0_0_0_3px_var(--accent-soft)] max-[520px]:rounded-[13px] max-[520px]:p-[10px]"
+                    className={`relative ${
+                      actionMenuItem?.id === item.id ? "z-100" : "z-0"
+                    } flex cursor-pointer gap-2 rounded-[14px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_90%,transparent)] p-[11px_12px] shadow-[0_4px_15px_rgba(25,35,29,0.025)] transition-[transform,border-color,box-shadow] duration-200 ease-in hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] hover:shadow-[var(--shadow)] focus:border-[var(--accent)] focus:outline-none focus:shadow-[0_0_0_3px_var(--accent-soft)] max-[520px]:rounded-[13px] max-[520px]:p-[10px]`}
                   >
                     <div className="grid h-10 w-10 flex-none place-items-center rounded-[9px] bg-[var(--accent-soft)] max-[520px]:h-8 max-[520px]:w-8">
                       <img
@@ -1034,7 +1234,7 @@ export default function Home() {
                         </span>
                       </div>
 
-                      <div className="relative">
+                      <div ref={actionMenuRef} className="relative z-10">
                         <button
                           type="button"
                           className="grid h-[27px] w-[27px] flex-none place-items-center rounded-[7px] border-0 bg-transparent p-0 text-[var(--muted)] opacity-[0.65] transition-[background,color,opacity] duration-[150ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] group-hover:opacity-100 max-[520px]:h-[25px] max-[520px]:w-[25px]"
@@ -1052,16 +1252,13 @@ export default function Home() {
 
                         {actionMenuItem?.id === item.id && (
                           <div
-                            className="absolute right-0 top-[34px] z-[50] w-[150px] rounded-[11px] border border-[var(--line)] bg-[var(--surface)] p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.12)] animate-[actionModalIn_150ms_ease]"
+                            className="absolute right-0 top-[34px] z-[9999] w-[150px] rounded-[11px] border border-[var(--line)] bg-[var(--surface)] p-[5px] shadow-[0_10px_30px_rgba(0,0,0,0.12)] animate-[actionModalIn_150ms_ease]"
                             onClick={event => event.stopPropagation()}
                           >
                             <button
                               type="button"
                               className="flex w-full items-center gap-[9px] rounded-[7px] border-0 bg-transparent px-[9px] py-[8px] text-left text-[11px] font-[650] text-[var(--ink)] transition-[background,color] duration-[150ms] ease-in hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-                              onClick={() => {
-                                openEdit(item);
-                                setActionMenuItem(null);
-                              }}
+                              onClick={() => openEdit(item)}
                             >
                               <Pencil size={14} />
                               <span>Edit</span>
@@ -1070,10 +1267,7 @@ export default function Home() {
                             <button
                               type="button"
                               className="flex w-full items-center gap-[9px] rounded-[7px] border-0 bg-transparent px-[9px] py-[8px] text-left text-[11px] font-[650] text-[var(--ink)] transition-[background,color] duration-[150ms] ease-in hover:bg-[#fae9e7] hover:text-[#b42318]"
-                              onClick={() => {
-                                void removeFavourite(item);
-                                setActionMenuItem(null);
-                              }}
+                              onClick={() => void removeFavourite(item)}
                             >
                               <Trash2 size={14} />
                               <span>Delete</span>
@@ -1124,7 +1318,10 @@ export default function Home() {
           className="fixed bottom-8 left-0 right-0 z-[9] mx-auto flex max-w-[620px] items-center gap-3 rounded-[14px] border border-[var(--line)] bg-[var(--surface)] py-1.5 pl-[14px] pr-[7px] shadow-[0_10px_30px_rgba(26,35,29,0.045)] max-[520px]:left-5 max-[520px]:right-5 max-[520px]:mt-[72px]"
           onSubmit={submitSearch}
         >
-          <div className="relative grid flex-none place-items-center">
+          <div
+            ref={searchMenuRef}
+            className="relative grid flex-none place-items-center"
+          >
             <button
               type="button"
               className="inline-flex min-w-[100px] items-center gap-[7px] rounded-[8px] border-0 bg-transparent p-[7px] text-[11px] font-[750] text-[var(--ink)] hover:bg-[var(--accent-soft)] max-[520px]:w-9 max-[520px]:min-w-9 max-[520px]:justify-center"
@@ -1266,19 +1463,37 @@ export default function Home() {
                       url: e.target.value,
                     })
                   }
+                  onPaste={e => {
+                    const pastedUrl = e.clipboardData.getData("text").trim();
+
+                    if (pastedUrl) {
+                      void fetchSiteName(pastedUrl);
+                    }
+                  }}
                   onBlur={() => {
                     const url = draft.url.trim();
 
-                    if (url && !/^https?:\/\//i.test(url)) {
-                      setDraft({
-                        ...draft,
-                        url: `https://${url}`,
-                      });
-                    }
+                    if (!url) return;
+
+                    const normalizedUrl = /^https?:\/\//i.test(url)
+                      ? url
+                      : `https://${url}`;
+
+                    setDraft(current => ({
+                      ...current,
+                      url: normalizedUrl,
+                    }));
+
+                    void fetchSiteName(normalizedUrl);
                   }}
                   placeholder="https://github.com"
                   className="w-full rounded-[9px] border border-[var(--line)] bg-[var(--bg)] px-3 py-[11px] text-[13px] text-[var(--ink)] outline-0 focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_var(--accent-soft)]"
                 />
+                {fetchingName && (
+                  <span className="text-[10px] font-semibold text-[var(--muted)]">
+                    Fetching site name...
+                  </span>
+                )}
               </label>
 
               <label className="grid gap-1.5 text-[12px] font-bold text-[var(--muted)]">

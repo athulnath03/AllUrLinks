@@ -1,0 +1,13 @@
+project/
+├── client/
+│   ├── public/
+│   └── src/
+│       ├── components/
+│       ├── contexts/
+│       ├── hooks/
+│       ├── lib/
+│       ├── pages/
+│       └── types/
+├── patches/
+├── server/
+└── shared/
