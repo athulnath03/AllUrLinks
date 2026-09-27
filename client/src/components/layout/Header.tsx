@@ -1,7 +1,7 @@
 "use client";
 
 import type { Session } from "@supabase/supabase-js";
-import { LogIn, LogOut } from "lucide-react";
+import { LogIn, LogOut, GitHub } from "lucide-react";
 
 import ThemeSelector, {
   type Theme,
@@ -89,7 +89,7 @@ export default function Header({
               onClick={onSignIn}
             >
               <LogIn size={16} />
-              Sign in with Github
+              <GitHub />
             </button>
           )
         ) : (
